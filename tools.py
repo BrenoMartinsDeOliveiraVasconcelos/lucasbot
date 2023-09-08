@@ -15,19 +15,21 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import _io
 import datetime
 import io
 
 
+# Função que escreve no arquivo de log
 def logit(msg):
     open("log", "a").write(msg + "\n")
 
 
+# Função principal de logging
 def logger(tp, sub_id="", ex="", num="", reason="", bprint=False):
-    current_time = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
+    current_time = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S") # Pega a hora atual pra por no log
     msg = ""
 
+    # Altera a string de mensagem do log a depender do tipo de chamada de função
     if tp == 0:
         msg = f"Comentário enviado em {sub_id}"
     elif tp == 1:
