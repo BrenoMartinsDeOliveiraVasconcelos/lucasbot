@@ -435,7 +435,7 @@ if __name__ == '__main__':
         pids.append(i.pid) # Salva os pids
         print(f"Iniciado processo com o PID {i.pid} para a função {funcs[index].__name__}()")
 
-    # Termino do processo de inicializaçãp
+    # Termino do processo de inicializaçãp.
     end = datetime.datetime.now().timestamp()
     print(f"main: {(end-start)*1000:.0f} ms.")
     
