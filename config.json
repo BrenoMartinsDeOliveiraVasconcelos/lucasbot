@@ -2,9 +2,9 @@
     "python": "python3.11",
     "info": {
         "name": "Lucas Bot",
-        "version": "3",
+        "version": "3.1",
         "creator": "JakeWisconsin",
-        "github": "https://github.com/BrenoMartinsDeOliveiraVasconcelos/EuSouOBabacaBOT"
+        "github": "https://github.com/BrenoMartinsDeOliveiraVasconcelos/lucasbot"
     },
     "upper_text": "[Respnde nossa pesquisar por favor? Não custa nada!](https://forms.gle/cvkiQdTJaSg78WSA8)",
     "submissions": "75",
