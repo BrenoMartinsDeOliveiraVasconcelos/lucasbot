@@ -1,0 +1,22 @@
+{
+  "FAKE_OT": {
+    "note": "Não se encaixa no sub",
+    "body": "Seu post recebeu uma quantidade significativa de votos FANFIC ou OT portanto, será removido. Se acredita que houve um egano, envie uma mensagem [JakeWisconsin](https://www.reddit.com/u/JakeWisconsin)."
+  },
+  "TEXTWALL": {
+    "note": "Parede de texto",
+    "body": "Sua publicação foi removida por ter erros de escrita. Em caso de duvida, chame [JakeWisconsin](https://www.reddit.com/u/JakeWisconsin)."
+  },
+  "TOO_YOUNG": {
+    "note": "Idade menor que 13",
+    "body": "Sua submissão foi removida pois você é muito novo. Ao completar 13 anos, poste novamente!"
+  },
+  "NO_AGE": {
+    "note": "Sem identificador de idade",
+    "body": "Sua publicação foi removida pois não possui a idade no teexto. É importante por a idade no texto para fins de ajudar o julgamento. Coloque a idade no titulo ou em alguma parte do texto. **RECOMENDADO POSTAR NOVAMENTE** Qualquer duvida, chame [JakeWisconsin](https://www.reddit.com/u/JakeWisconsin)\n\n>!NOEDIT!<"
+  },
+  "KARMA": {
+    "note": "Pouco karma",
+    "body": "Sua publicação foi removida pois você possui pouco karma. Por favor envie uma mensagem para [JakeWisconsin](https://www.reddit.com/u/JakeWisconsin) para ter seu post revisado. "
+  }
+}

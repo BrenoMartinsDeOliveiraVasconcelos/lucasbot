@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/EuSouOBabacaBOT.iml" filepath="$PROJECT_DIR$/.idea/EuSouOBabacaBOT.iml" />
+      <module fileurl="file://$USER_HOME$/C:/FC_Backend/.idea/FC_Backend.iml" filepath="$USER_HOME$/C:/FC_Backend/.idea/FC_Backend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../FC_Installer/.idea/FC_Installer.iml" filepath="$PROJECT_DIR$/../../FC_Installer/.idea/FC_Installer.iml" />
+      <module fileurl="file://$USER_HOME$/bin/aoc2scp/.idea/aoc2scp.iml" filepath="$USER_HOME$/bin/aoc2scp/.idea/aoc2scp.iml" />
+      <module fileurl="file://$USER_HOME$/PycharmProjects/text2emotion/.idea/text2emotion.iml" filepath="$USER_HOME$/PycharmProjects/text2emotion/.idea/text2emotion.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../textwall/.idea/textwall.iml" filepath="$PROJECT_DIR$/../textwall/.idea/textwall.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../Testes/threading/.idea/threading.iml" filepath="$PROJECT_DIR$/../../Testes/threading/.idea/threading.iml" />
+    </modules>
+  </component>
+</project>
