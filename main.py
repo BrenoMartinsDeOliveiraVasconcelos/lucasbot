@@ -162,7 +162,7 @@ def runtime():
                             for sub in comment_body:
                                 sub = sub.strip() # Méteodo strip na palavra....
                                 replaces = ["!", "?", ".", ",", ":", "(", ")", "[", "]", "{", "}", "-",
-                                            "+", "/", "\\", "'", '"', '~']
+                                            "+", "/", "\\", "'", '"', '~', "\n", "\n\n"]
                                 for c in replaces:
                                     sub = sub.replace(c, "") # Remove caractéres especiais
         
