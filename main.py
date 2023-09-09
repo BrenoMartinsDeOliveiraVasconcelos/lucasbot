@@ -62,7 +62,6 @@ def runtime():
 
     # Adiciona também os votos especiais...
     botxt += votxt[0] + "**Votos especiais**\n\n" + votxt[1] + "\n\n"
-    botxt += "##Nota: Pode demorar cerca de 5 minutos para atualizar!\n\n"
 
     reddit.validate_on_submit = True
     
@@ -306,7 +305,7 @@ Voto | Quantidade | %
 
                 # Adiciona a justificativa no corpo do bot
                 ebotxt = botxt
-                ebotxt += f"\n\n# O motivo do op se achar babaca é:\n"
+                ebotxt += f"\n\n## O motivo do op se achar babaca é:\n"
                 try:
                     reasoning = json.load(open("reasoning/reasonings.json", "r"))
                     areason = reasoning[submission.id]
