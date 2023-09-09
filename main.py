@@ -121,7 +121,7 @@ def runtime():
                 # Salva as alterações no arquivo de corpos
                 open("./bodies/bodies.json", "w+").write(bodies_json)
                 if submission.id not in sublist: # Se a submissão não tiver nos ids
-                    submission.reply(body="Justifique o motivo de você achar ser o babaca respondendo ao bot em até 1 hora. Falhar nisso causará remoção.\n\n>!NOEDIT!<")
+                    submission.reply(body="Justifique o motivo de você achar ser o babaca ou não. Não justificar em 1 hora causará remoção.\n\n>!NOEDIT!<")
                     botcomment = submission.reply(body=ftxt + botxt + etxt) # Responde a publicação com a soma das partes como placeholder
                     tools.logger(0, sub_id=submission.id)
                     botcomment.mod.distinguish(sticky=True) # Marca o comentário como MOD e o fixa
@@ -305,14 +305,14 @@ Voto | Quantidade | %
 
                 # Adiciona a justificativa no corpo do bot
                 ebotxt = botxt
-                ebotxt += f"\n\n## O motivo do op se achar babaca é:\n"
+                ebotxt += f"\n\n## O motivo do op se achar babaca ou não é:\n"
                 try:
                     reasoning = json.load(open("reasoning/reasonings.json", "r"))
                     areason = reasoning[submission.id]
                 except KeyError:
                     areason = "Não justificado."
                 for line in areason.split("\n"):
-                    ebotxt += f"*{line}*\n\n"
+                    ebotxt += f">{line}\n\n"
 
                 for com in comments:
                     if com.author == f"{api['username']}":
