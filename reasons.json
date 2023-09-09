@@ -18,5 +18,9 @@
   "KARMA": {
     "note": "Pouco karma",
     "body": "Sua publicação foi removida pois você possui pouco karma. Por favor envie uma mensagem para [JakeWisconsin](https://www.reddit.com/u/JakeWisconsin) para ter seu post revisado. "
+  },
+  "NO_REASON": {
+    "note": "Não justificou o post",
+    "body": "Sua publicação foi removida pois você não justificou o post. Em caso de duvida, chame [JakeWisconsin](https://www.reddit.com/u/JakeWisconsin) para ter seu post revisado. "
   }
 }

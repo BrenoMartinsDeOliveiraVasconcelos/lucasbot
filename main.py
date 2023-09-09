@@ -122,6 +122,7 @@ def runtime():
                 # Salva as alterações no arquivo de corpos
                 open("./bodies/bodies.json", "w+").write(bodies_json)
                 if submission.id not in sublist: # Se a submissão não tiver nos ids
+                    submission.reply(body="Justifique o motivo de você achar ser o babaca respondendo ao bot em até 1 hora. Falhar nisso causará remoção.\n\n>!NOEDIT!<")
                     botcomment = submission.reply(body=ftxt + botxt + etxt) # Responde a publicação com a soma das partes como placeholder
                     tools.logger(0, sub_id=submission.id)
                     botcomment.mod.distinguish(sticky=True) # Marca o comentário como MOD e o fixa
@@ -303,10 +304,21 @@ Voto | Quantidade | %
                 body_obj = ''.join(body_obj)
                 bodytxt = f"\n\n# Texto original\n\n{body_obj}\n\n>!NOEDIT!<" # Adiciona o header
 
+                # Adiciona a justificativa no corpo do bot
+                ebotxt = botxt
+                ebotxt += f"\n\n# O motivo do op se achar babaca é:\n"
+                try:
+                    reasoning = json.load(open("reasoning/reasonings.json", "r"))
+                    areason = reasoning[submission.id]
+                except KeyError:
+                    areason = "Não justificado."
+                for line in areason.split("\n"):
+                    ebotxt += f"*{line}*\n\n"
+
                 for com in comments:
                     if com.author == f"{api['username']}":
                         bd = com.body.split("\n")
-                        fullbody = ftxt + botxt + etxt # Cola as partes do comentário
+                        fullbody = ftxt + ebotxt + etxt # Cola as partes do comentário
                         if notInBody:
                             com.reply(body=bodytxt) # Se ainda não tiver o texto original, o comenta
                         if ">!NOEDIT!<" not in bd: # Se não tiver ">!NOEDIT!<"
@@ -417,12 +429,84 @@ def textwall():
             tools.logger(tp=5, ex=traceback.format_exc())
 
 
+def justification():
+    '''
+    Sistema que exige justifiação do post. Verifica depois de 1 hora de postado se o post foi justificado.
+    :return:
+    '''
+    reddit.validate_on_submit = True
+    while True:
+        atime = datetime.datetime.now().timestamp()
+        try:
+            subcount = 0
+            submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
+            for submission in submissons:
+                reasonings = json.load(open(f"reasoning/reasonings.json", "r"))
+                now = datetime.datetime.now().timestamp()
+                time.sleep(2)
+                subcount += 1
+                subid = submission.id
+                reason = ""
+
+                sublist = tools.getfiletext(open("jid", "r"))  # Pega a lista de ids
+                idlist = tools.getfiletext(open("idlist", "r"))
+                indx = -1
+
+                # Contiunuar
+                submission.comment_sort = 'new'  # Filtra os comentários por novos
+                submission.comments.replace_more(limit=None)
+                comments = submission.comments.list()
+                didOPans = False # se o op respondeu
+                breakparent = False
+
+                for com in comments:
+                    if com.author == api["username"]: # Se o autor do comentário for o bot.
+                        # Verificar se o autor do post respondeu
+                        comreplies = com.replies
+                        for reply in comreplies: # Para cada resposta do comentário
+                            if reply.author == submission.author:
+                                didOPans = True
+                                reason = reply.body # O motivo é o corpo da resposta
+                                breakparent = True
+                                break
+
+                            if breakparent:
+                                break
+
+                # Para fins de evitar flood de remoções, verifica se o id não está na lista de ignorados
+                igl = tools.getfiletext(open("ignore_list", "r"))
+
+                if not didOPans and subid not in igl:
+                    # Se o timestamp de criação - timestamp de agora for maior que 1 hora...
+                    if now - submission.created_utc >= 3600:
+                        removal = reasons['NO_REASON']
+                        submission.mod.remove(mod_note=removal['note'], spam=False)
+                        submission.reply(body=removal['body'])
+                        tools.logger(tp=4, sub_id=subid, reason="Sem justificativa")
+                else:
+                    if subid in igl:
+                        reason = "Post postado antes de precisar justificar."
+                    open("jid", "a").write(f"{subid}\n")
+
+                    # Salva o motivo
+                    reasonings[subid] = reason
+
+                    rstr = json.dumps(reasonings, indent=4)
+                    open(f"reasoning/reasonings.json", "w").write(rstr)
+
+            btime = datetime.datetime.now().timestamp()
+            tools.log_runtime(justification, atime, btime)
+        except Exception:
+            tools.logger(tp=5, ex=traceback.format_exc())
+
+
+
 if __name__ == '__main__':
     # Preparar os arquivos
     prep.begin()
 
     # Carrega as funções
-    funcs = [runtime, backup, clearlog, textwall]
+    funcs = [runtime, backup, clearlog, textwall, justification]
     processes = [multiprocessing.Process(target=x, args=[], name=x.__name__) for x in funcs] # Inicializa os processos
 
     pids = [os.getpid()]
