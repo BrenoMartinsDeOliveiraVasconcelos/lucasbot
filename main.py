@@ -318,9 +318,9 @@ Voto | Quantidade | %
                     if com.author == f"{api['username']}":
                         bd = com.body.split("\n")
                         fullbody = ftxt + ebotxt + etxt # Cola as partes do comentário
-                        if notInBody:
-                            com.reply(body=bodytxt) # Se ainda não tiver o texto original, o comenta
                         if ">!NOEDIT!<" not in bd: # Se não tiver ">!NOEDIT!<"
+                            if notInBody:
+                                com.reply(body=bodytxt)  # Se ainda não tiver o texto original, o comenta
                             com.edit(
                                 body=fullbody) # Edita o comentário do placar
                             tools.logger(1, sub_id=submission.id)
