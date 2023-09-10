@@ -484,12 +484,15 @@ def justification():
                 igl = tools.getfiletext(open("ignore_list", "r"))
 
                 if not didOPans and subid not in igl:
+                    rid = tools.getfiletext(open("rid", "r")) # Abrir a lista de remoções
                     # Se o timestamp de criação - timestamp de agora for maior que 1 hora...
                     if now - submission.created_utc >= 3600:
-                        removal = reasons['NO_REASON']
-                        submission.mod.remove(mod_note=removal['note'], spam=False)
-                        submission.reply(body=removal['body'])
-                        tools.logger(tp=4, sub_id=subid, reason="Sem justificativa")
+                        if subid not in rid:
+                            removal = reasons['NO_REASON']
+                            submission.mod.remove(mod_note=removal['note'], spam=False)
+                            submission.reply(body=removal['body'])
+                            tools.logger(tp=4, sub_id=subid, reason="Sem justificativa")
+                            open("rid", "a").write(f"{subid}\n")
                 else:
                     if subid in igl:
                         reason = "Post postado antes de precisar justificar."
@@ -505,7 +508,6 @@ def justification():
             tools.log_runtime(justification, atime, btime)
         except Exception:
             tools.logger(tp=5, ex=traceback.format_exc())
-
 
 
 if __name__ == '__main__':
