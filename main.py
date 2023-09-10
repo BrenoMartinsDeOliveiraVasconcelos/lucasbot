@@ -121,7 +121,7 @@ def runtime():
                 # Salva as alterações no arquivo de corpos
                 open("./bodies/bodies.json", "w+").write(bodies_json)
                 if submission.id not in sublist: # Se a submissão não tiver nos ids
-                    submission.reply(body="Justifique o motivo de você achar ser o babaca ou não. Não justificar em 1 hora causará remoção.\n\n>!NOEDIT!<")
+                    submission.reply(body="OP, responda esse comentário com o motivo de você achar ser o babaca ou não. Não justificar em 1 hora causará remoção.\n\n>!NOEDIT!<")
                     botcomment = submission.reply(body=ftxt + botxt + etxt) # Responde a publicação com a soma das partes como placeholder
                     tools.logger(0, sub_id=submission.id)
                     botcomment.mod.distinguish(sticky=True) # Marca o comentário como MOD e o fixa
@@ -156,7 +156,15 @@ def runtime():
                                 and comment.author != submission.author: # Se o votante não for o autor, não tiver sido contado já ou não for o bot...
                             comment_body = comment.body.split(' ') # O corpo do comentário é divido em palavras
                             indx = -1
-
+                            # Aparentemente esse código não era tão inutil
+                            for sub in comment_body:
+                                indx += 1
+                                sub = sub.split("\n")
+                                comment_body[indx] = sub[0]
+                                try:
+                                    comment_body.insert(indx + 1, sub[1])
+                                except IndexError:
+                                    pass
                             rate = [] # Lista de palvras strippadas
                             # Para palavra no comentário...
                             for sub in comment_body:
