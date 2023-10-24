@@ -38,6 +38,7 @@ config = json.load(open('config.json', 'r')) # Configurações do bot
 api = json.load(open("api.json", "r")) # Configurações da API
 splashes = json.load(open('splashes.json', 'r')) # Mensagens localizadas no final do comentário do bot
 reasons = json.load(open("reasons.json", "r")) # Motivos para punição automatizada
+boot = True
 
 # Entrar no reddit
 reddit = praw.Reddit(
@@ -536,8 +537,9 @@ def justification():
                     if now - submission.created_utc >= 3600:
                         if subid not in rid:
                             removal = reasons['NO_REASON']
-                            submission.mod.remove(mod_note=removal['note'], spam=False)
-                            submission.reply(body=removal['body'])
+                            if not boot: # Se não tiver aado de inicialzar..
+                                submission.mod.remove(mod_note=removal['note'], spam=False)
+                                submission.reply(body=removal['body'])
                             tools.logger(tp=4, sub_id=subid, reason="Sem justificativa")
                             open("rid", "a").write(f"{subid}\n")
                 else:
@@ -555,7 +557,6 @@ def justification():
             tools.log_runtime(justification, atime, btime)
         except Exception:
             tools.logger(tp=5, ex=traceback.format_exc())
-
 
 if __name__ == '__main__':
     # Preparar os arquivos

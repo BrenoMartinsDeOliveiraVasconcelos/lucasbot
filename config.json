@@ -35,7 +35,7 @@
         "min_paragraphs": 2,
         "min_sentences": 3,
         "max_body": 9000,
-        "min_body": 500
+        "min_body": 200
     },
     "karma_filter": {
         "enabled": false,
