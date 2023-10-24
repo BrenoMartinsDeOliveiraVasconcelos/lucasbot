@@ -5,7 +5,7 @@
   },
   "TEXTWALL": {
     "note": "Parede de texto",
-    "body": "Sua publicação foi removida por ter erros de escrita. Em caso de duvida, chame [JakeWisconsin](https://www.reddit.com/u/JakeWisconsin)."
+    "body": "Sua publicação foi removida. Os motivos podem ser:\n\n* O seu texto só possui um paragráfo, tornando a leitura mais dificil\n* Você não ponutou o texto corretamente\n* O texto é muito longo\n* O texto é muito curto\n\nEm caso de duvida, chame [JakeWisconsin](https://www.reddit.com/u/JakeWisconsin)."
   },
   "TOO_YOUNG": {
     "note": "Idade menor que 13",
@@ -21,6 +21,6 @@
   },
   "NO_REASON": {
     "note": "Não justificou o post",
-    "body": "Sua publicação foi removida pois você não justificou o post. Em caso de duvida, chame [JakeWisconsin](https://www.reddit.com/u/JakeWisconsin) para ter seu post revisado. "
+    "body": "Sua publicação foi removida pois você não justificou o post. Em caso de duvida, chame [JakeWisconsin](https://www.reddit.com/u/JakeWisconsin)."
   }
 }

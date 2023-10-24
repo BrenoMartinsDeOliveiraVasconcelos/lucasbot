@@ -6,12 +6,13 @@
         "creator": "JakeWisconsin",
         "github": "https://github.com/BrenoMartinsDeOliveiraVasconcelos/lucasbot"
     },
-    "upper_text": "[Responda nossa pesquisa por favor? Não custa nada!](https://forms.gle/cvkiQdTJaSg78WSA8)",
-    "submissions": "75",
+    "managers": ["JakeWisconsin", "sushizinha_", "cptdino"],
+    "upper_text": "[Veja o resultado da pesquisa do sub](https://www.reddit.com/16r2bo8)",
+    "submissions": "500",
     "subreddit": "EuSouOBabaca",
     "backup": "/srv/Backup",
     "clear_log": 86400,
-    "break_time": 172800,
+    "break_time": 604800,
     "flairs": {
         "NEOB": ["fad0940c-6841-11ed-baed-365116e43406", 0, "Não é o babaca (e o resto sim)"],
         "EOB": ["e46b8208-6841-11ed-99cd-cec761e4d61c", 0, "É o babaca"],
@@ -33,7 +34,8 @@
     "text_filter": {
         "min_paragraphs": 2,
         "min_sentences": 3,
-        "max_body": 9000
+        "max_body": 9000,
+        "min_body": 500
     },
     "karma_filter": {
         "enabled": false,

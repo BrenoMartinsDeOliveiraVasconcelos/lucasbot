@@ -121,7 +121,7 @@ def runtime():
                 # Salva as alterações no arquivo de corpos
                 open("./bodies/bodies.json", "w+").write(bodies_json)
                 if submission.id not in sublist: # Se a submissão não tiver nos ids
-                    submission.reply(body="OP, responda esse comentário com o motivo de você achar ser o babaca ou não. Não justificar em 1 hora causará remoção.\n\n>!NOEDIT!<")
+                    submission.reply(body="OP, responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento. Não justificar em 1 hora causará remoção.\n\n>!NOEDIT!<")
                     botcomment = submission.reply(body=ftxt + botxt + etxt) # Responde a publicação com a soma das partes como placeholder
                     tools.logger(0, sub_id=submission.id)
                     botcomment.mod.distinguish(sticky=True) # Marca o comentário como MOD e o fixa
@@ -150,72 +150,92 @@ def runtime():
                     num_coms += 1
 
                 # Loop para iterar nos comentários
+                ignored = 0 # Número de votos inválidos
+                invalid = 0 # Comentários inválidos
                 for comment in comments:
+                    ignore_com = False # Váriavel de ignorar comentário
                     try:
                         if comment.author != api["username"] and comment.author not in users \
                                 and comment.author != submission.author: # Se o votante não for o autor, não tiver sido contado já ou não for o bot...
-                            comment_body = comment.body.split(' ') # O corpo do comentário é divido em palavras
-                            indx = -1
-                            # Aparentemente esse código não era tão inutil
-                            for sub in comment_body:
-                                indx += 1
-                                sub = sub.split("\n")
-                                comment_body[indx] = sub[0]
+                            # Vê as respostas dos comentários para achar o comentário de ignorar
+                            replies = comment.replies
+                            for x in replies:
+                                if x.author in config["managers"]:
+                                    if "ignoreme" in x.body.replace("\n", "").replace("\n\n", ""):
+                                        ignore_com = True
+                                        ignored += 1
+
+                            if not ignore_com:
+                                comment_body = comment.body.split(' ') # O corpo do comentário é divido em palavras
+                                indx = -1
+                                # Aparentemente esse código não era tão inutil
+                                for sub in comment_body:
+                                    indx += 1
+                                    sub = sub.split("\n")
+                                    comment_body[indx] = sub[0]
+                                    try:
+                                        comment_body.insert(indx + 1, sub[1])
+                                    except IndexError:
+                                        pass
+                                rate = [] # Lista de palvras strippadas
+                                # Para palavra no comentário...
+                                for sub in comment_body:
+                                    sub = sub.strip() # Méteodo strip na palavra....
+                                    replaces = ["!", "?", ".", ",", ":", "(", ")", "[", "]", "{", "}", "-",
+                                                "+", "/", "\\", "'", '"', '~', "\n", "\n\n"]
+                                    for c in replaces:
+                                        sub = sub.replace(c, "") # Remove caractéres especiais
+
+                                    rate.append(sub)
+
+                                indx = -1
+                                for w in rate: # Para w na lista de palvras estripadas...
+                                    indx += 1
+                                    rate[indx] = w.upper() # Coloca a palavra EM MAIUSCULO
+
+                                # Da lista de votos possíveis, se um deles tiver ali, adiciona mais um no número de votos
+                                doesItCount = False
+                                for r in rates:
+                                    if r in rate:
+                                        assholecount[r] += 1
+                                        doesItCount = True
+                                        break
+
+                                # Adiciona os ignorados caso não esteja nas keys
+                                if not doesItCount:
+                                    invalid += 1
+
+                                total = 0
+                                # Para k e v na lista de votos
+                                for k, v in assholecount.items():
+                                    total += v # Adiciona mais um no total
+                                    if v >= highest: # E vê qual o maior
+                                        highest = v
+                                        key = k
                                 try:
-                                    comment_body.insert(indx + 1, sub[1])
-                                except IndexError:
-                                    pass
-                            rate = [] # Lista de palvras strippadas
-                            # Para palavra no comentário...
-                            for sub in comment_body:
-                                sub = sub.strip() # Méteodo strip na palavra....
-                                replaces = ["!", "?", ".", ",", ":", "(", ")", "[", "]", "{", "}", "-",
-                                            "+", "/", "\\", "'", '"', '~', "\n", "\n\n"]
-                                for c in replaces:
-                                    sub = sub.replace(c, "") # Remove caractéres especiais
-        
-                                rate.append(sub)
+                                    percent = highest / total # Caclula qual a poercentagem
+                                except ZeroDivisionError:
+                                    percent = 1.00
 
-                            indx = -1
-                            for w in rate: # Para w na lista de palvras estripadas...
-                                indx += 1
-                                rate[indx] = w.upper() # Coloca a palavra EM MAIUSCULO
-                            
-                            # Da lista de votos possíveis, se um deles tiver ali, adiciona mais um no número de votos
-                            for r in rates:
-                                if r in rate:
-                                    assholecount[r] += 1
-                                    break
-                            
-                            total = 0
-                            # Para k e v na lista de votos
-                            for k, v in assholecount.items():
-                                total += v # Adiciona mais um no total
-                                if v >= highest: # E vê qual o maior 
-                                    highest = v
-                                    key = k
-                            try:
-                                percent = highest / total # Caclula qual a poercentagem
-                            except ZeroDivisionError:
-                                percent = 1.00
+                                # Calcula o julgamento
+                                ind = rates.index(key)
+                                judgment = judges[ind]
 
-                            # Calcula o julgamento
-                            ind = rates.index(key)
-                            judgment = judges[ind]
+                                if percent < 0.50: # Se a porcentagem for menor quee 50%, nenhum teve a maioria
+                                    judgment = "Nenhum voto atingiu a maioria"
+                                    votetxt = f"{total} votos contados ao total"
+                                else:
+                                    votetxt = f"{percent * 100:.2f}% de {total} votos" # Se não, atingiu
 
-                            if percent < 0.50: # Se a porcentagem for menor quee 50%, nenhum teve a maioria
-                                judgment = "Nenhum voto atingiu a maioria"
-                                votetxt = f"{total} votos contados ao total"
-                            else:
-                                votetxt = f"{percent * 100:.2f}% de {total} votos" # Se não, atingiu
-
-                            # Agora, se o total for igual a zero não foi avaliado ainda =)
-                            if total == 0:
-                                judgment = "Não avaliado"
-                                votetxt = f"{total} votos contados ao total"
-                            ftxt = f"### " \
-                                    f"{judgment} ({votetxt})"
-                            users.append(comment.author)
+                                # Agora, se o total for igual a zero não foi avaliado ainda =)
+                                if total == 0:
+                                    judgment = "Não avaliado"
+                                    votetxt = f"{total} votos contados ao total"
+                                ftxt = f"### " \
+                                        f"{judgment} ({votetxt})"
+                                users.append(comment.author)
+                        else:
+                            invalid += 1
                     except Exception:
                         tools.logger(5, ex=traceback.format_exc())
 
@@ -244,6 +264,9 @@ Voto | Quantidade | %
                     if total >= 1:
                         if k in config["asshole"] or k in config['not_asshole']:
                             total_ac += v
+
+                # Adicionar os comentários ignorados
+                votxt += f"**Nulos** | {ignored} | N/A\n\n**Nulos são comentáriso marcados para serem ignorados. Comentários inválidos: {invalid}**\n"
 
                 # Pega a porcentagem de votos babacas e votos não babacas
                 if total_ac >= 1:
@@ -314,13 +337,21 @@ Voto | Quantidade | %
                 # Adiciona a justificativa no corpo do bot
                 ebotxt = botxt
                 ebotxt += f"\n\n## O motivo do op se achar babaca ou não é:\n"
-                try:
-                    reasoning = json.load(open("reasoning/reasonings.json", "r"))
-                    areason = reasoning[submission.id]
-                except KeyError:
-                    areason = "Não justificado."
+                for _ in range(0, 3): # Tentar 3 vezes para caso de erro
+                    time.sleep(0.1)
+                    try:
+                        reasoning = json.load(open("reasoning/reasonings.json", "r"))
+                        areason = reasoning[submission.id]
+                        break
+                    except KeyError:
+                        areason = "Não justificado."
+                        break
+                    except json.JSONDecodeError:
+                        # O erro não interfere no programa aprentemente...
+                        areason = "Erro temporário."
+
                 for line in areason.split("\n"):
-                    ebotxt += f">{line}\n\n"
+                    ebotxt += f">{line}\n"
 
                 for com in comments:
                     if com.author == f"{api['username']}":
@@ -401,9 +432,14 @@ def textwall():
                     # Determinar quantos parágrafos tem o texto
                     index = -1
                     paragraph_cond = False
+
+                    # Número de caracteres
+                    chars = 0
+
                     if body != "": # Se o corpo for diferente de ""
                         for i in body:
                             index += 1
+                            chars += 1
                             try:
                                 if i == "\n" and body[index+1] == "\n":
                                     paragraphs += 1
@@ -423,10 +459,13 @@ def textwall():
                         sentences = 0
 
                     # Remove a publicação suspeita de parede de texto.
-                    if paragraphs < config["text_filter"]["min_paragraphs"] or sentences < config["text_filter"]["min_sentences"]  or len(body) > config["text_filter"]["max_body"] :
+                    if (paragraphs < config["text_filter"]["min_paragraphs"] or
+                            sentences < config["text_filter"]["min_sentences"] or
+                            len(body) > config["text_filter"]["max_body"] or
+                            len(body) < config["text_filter"]["min_body"]):
                         reason = reasons['TEXTWALL']
                         submission.mod.remove(mod_note=reason['note'], spam=False)
-                        submission.reply(body=reason['body'])
+                        submission.reply(body=reason['body']+f"\n\nParágrafos: {paragraphs}\n\nFrases: {sentences}\n\nCaractéres: {chars}")
                         tools.logger(tp=4, sub_id=subid, reason="Parede de texto")
 
                         open("rid", "a").write(f"{subid}\n")
@@ -455,10 +494,6 @@ def justification():
                 subid = submission.id
                 reason = ""
 
-                sublist = tools.getfiletext(open("jid", "r"))  # Pega a lista de ids
-                idlist = tools.getfiletext(open("idlist", "r"))
-                indx = -1
-
                 # Contiunuar
                 submission.comment_sort = 'new'  # Filtra os comentários por novos
                 submission.comments.replace_more(limit=None)
@@ -472,10 +507,22 @@ def justification():
                         comreplies = com.replies
                         for reply in comreplies: # Para cada resposta do comentário
                             if reply.author == submission.author:
-                                didOPans = True
-                                reason = reply.body # O motivo é o corpo da resposta
-                                breakparent = True
-                                break
+                                # Checa se não tem um caractere blacklistado, para evitar abusos
+                                blacklist = []
+                                count = True
+                                for i in blacklist:
+                                    for x in reply.body:
+                                        if x == i:
+                                            count = False
+                                            break
+
+                                    if not count:
+                                        break
+                                if count:
+                                    didOPans = True
+                                    reason = reply.body # O motivo é o corpo da resposta
+                                    breakparent = True
+                                    break
 
                             if breakparent:
                                 break
