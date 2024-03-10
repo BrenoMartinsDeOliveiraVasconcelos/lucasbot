@@ -151,22 +151,14 @@ def runtime():
                     num_coms += 1
 
                 # Loop para iterar nos comentários
-                ignored = 0 # Número de votos inválidos
                 invalid = 0 # Comentários inválidos
                 for comment in comments:
-                    ignore_com = False # Váriavel de ignorar comentário
                     try:
                         if comment.author != api["username"] and comment.author not in users \
                                 and comment.author != submission.author: # Se o votante não for o autor, não tiver sido contado já ou não for o bot...
                             # Vê as respostas dos comentários para achar o comentário de ignorar
-                            replies = comment.replies
-                            for x in replies:
-                                if x.author in config["managers"]:
-                                    if "ignoreme" in x.body.replace("\n", "").replace("\n\n", ""):
-                                        ignore_com = True
-                                        ignored += 1
 
-                            if not ignore_com:
+                            if True: # Removendo a censura
                                 comment_body = comment.body.split(' ') # O corpo do comentário é divido em palavras
                                 indx = -1
                                 # Aparentemente esse código não era tão inutil
@@ -267,7 +259,7 @@ Voto | Quantidade | %
                             total_ac += v
 
                 # Adicionar os comentários ignorados
-                votxt += f"**Nulos** | {ignored} | N/A\n\n**Nulos são comentáriso marcados para serem ignorados. Comentários inválidos: {invalid}**\n"
+                votxt += f"\n\n**Comentários inválidos: {invalid}**\n"
 
                 # Pega a porcentagem de votos babacas e votos não babacas
                 if total_ac >= 1:
