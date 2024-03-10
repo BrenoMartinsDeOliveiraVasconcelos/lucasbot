@@ -339,7 +339,7 @@ Voto | Quantidade | %
                 ebotxt = botxt
                 ebotxt += f"\n\n## O motivo do op se achar babaca ou não é:\n"
                 for _ in range(0, 3): # Tentar 3 vezes para caso de erro
-                    time.sleep(0.1)
+                    time.sleep(config["sleep_time"]["main"])
                     try:
                         reasoning = json.load(open("reasoning/reasonings.json", "r"))
                         areason = reasoning[submission.id]
@@ -385,7 +385,7 @@ def backup():
             tools.logger(2, bprint=False, ex="Backup realizado")
         except:
             pass
-        time.sleep(3600) # Espera 3600 segundos para poder continuar
+        time.sleep(config["sleep_time"]["backup"]) # Espera 3600 segundos para poder continuar
         btime = datetime.datetime.now().timestamp()
         tools.log_runtime(backup, atime, btime)
         
@@ -409,7 +409,7 @@ def textwall():
             subcount = 0
             submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"])) # Pega subs
             for submission in submissons:
-                time.sleep(1)
+                time.sleep(config["sleep_time"]["textwall"])
                 subcount += 1
                 subid = submission.id
 
@@ -490,7 +490,7 @@ def justification():
             for submission in submissons:
                 reasonings = json.load(open(f"reasoning/reasonings.json", "r"))
                 now = datetime.datetime.now().timestamp()
-                time.sleep(2)
+                time.sleep(config["sleep_time"]["justification"])
                 subcount += 1
                 subid = submission.id
                 reason = ""

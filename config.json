@@ -2,17 +2,23 @@
     "python": "python3.11",
     "info": {
         "name": "Lucas Bot",
-        "version": "3.1",
+        "version": "3.1.1",
         "creator": "JakeWisconsin",
         "github": "https://github.com/BrenoMartinsDeOliveiraVasconcelos/lucasbot"
     },
-    "managers": ["JakeWisconsin", "sushizinha_", "cptdino"],
-    "upper_text": "[Veja o resultado da pesquisa do sub](https://www.reddit.com/16r2bo8)",
+    "managers": [],
+    "upper_text": "[Qual sua opinião sobre o bot? Responde ai pfvr!!!](https://forms.gle/QLnCRw6rJocwnGQG9)",
     "submissions": "500",
     "subreddit": "EuSouOBabaca",
     "backup": "/srv/Backup",
     "clear_log": 86400,
     "break_time": 604800,
+    "sleep_time": {
+        "main": 0.1,
+        "backup": 3600,
+        "textwall": 1,
+        "justification": 2
+    },
     "flairs": {
         "NEOB": ["fad0940c-6841-11ed-baed-365116e43406", 0, "Não é o babaca (e o resto sim)"],
         "EOB": ["e46b8208-6841-11ed-99cd-cec761e4d61c", 0, "É o babaca"],
