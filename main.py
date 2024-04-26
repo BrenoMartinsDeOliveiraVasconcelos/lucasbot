@@ -42,6 +42,8 @@ splashes = json.load(open('splashes.json', 'r')) # Mensagens localizadas no fina
 reasons = json.load(open("reasons.json", "r")) # Motivos para punição automatizada
 boot = True
 
+print(f"Bem-vindo!")
+
 # Entrar no reddit
 reddit = praw.Reddit(
     user_agent=api["useragent"],
