@@ -2,9 +2,10 @@
     "python": "python3.11",
     "info": {
         "name": "Lucas Bot",
-        "version": "3.2",
+        "version": "24.04d26",
         "creator": "JakeWisconsin",
-        "github": "https://github.com/BrenoMartinsDeOliveiraVasconcelos/lucasbot"
+        "github": "https://github.com/BrenoMartinsDeOliveiraVasconcelos/lucasbot",
+        "debug": false
     },
     "upper_text": "[Qual sua opinião sobre o bot? Responde ai pfvr!!!](https://forms.gle/QLnCRw6rJocwnGQG9)",
     "submissions": "500",
@@ -12,11 +13,14 @@
     "backup": "/srv/Backup",
     "clear_log": 86400,
     "break_time": 604800,
+    "replace_list": ["!", "?", ".", ",", ":", "(", ")", "[", "]", "{", "}", "-", "+", "/", "\\", "'", "\u0022", "~", "\n", "\n\n"],
     "sleep_time": {
         "main": 0.1,
         "backup": 3600,
         "textwall": 1,
-        "justification": 2
+        "justification": 2,
+        "filter_sub": 1.5,
+        "filter_com": 0.25
     },
     "flairs": {
         "NEOB": ["fad0940c-6841-11ed-baed-365116e43406", 0, "Não é o babaca (e o resto sim)"],

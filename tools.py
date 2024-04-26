@@ -17,6 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import datetime
 import io
+import json
+
+config = json.load(open("config.json", "r"))
 
 
 # Função que escreve no arquivo de log
@@ -25,7 +28,7 @@ def logit(msg):
 
 
 # Função principal de logging
-def logger(tp, sub_id="", ex="", num="", reason="", bprint=False):
+def logger(tp, sub_id="", ex="", num="", reason="", bprint=False, com_id=""):
     current_time = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S") # Pega a hora atual pra por no log
     msg = ""
 
@@ -45,8 +48,14 @@ def logger(tp, sub_id="", ex="", num="", reason="", bprint=False):
         msg = f"Número {num} ({sub_id})"
     elif tp == 4:
         msg = f"{sub_id} foi removido. MOTIVO: {reason}"
+    elif tp == 6:
+        msg = f"Comentário denunciado: {ex} em {sub_id}/{com_id}"
 
-    logit(f"[{current_time}] "+msg)
+    msg = f"[{current_time}] "+msg
+    if config["info"]["debug"]:
+        print(msg)
+
+    logit(msg)
 
 
 def log_runtime(func, a: float, b: float):

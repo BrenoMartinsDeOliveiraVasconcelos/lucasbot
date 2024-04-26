@@ -15,6 +15,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
+# Timestamp do inicio do programa
+import datetime
+start = datetime.datetime.now().timestamp()
 
 import praw
 import json
@@ -22,7 +25,6 @@ import tools
 import multiprocessing
 import shutil
 import time
-import datetime
 import traceback
 import random
 import os
@@ -92,7 +94,7 @@ def runtime():
                 etxt = f"""
                                 
 *{joke}* 
-*{config['info']['name']} v{config['info']['version']} - by [{config['info']['creator']}](https://www.reddit.com/u/{config['info']['creator']}).*
+*{config['info']['name']} {config['info']['version']} - by [{config['info']['creator']}](https://www.reddit.com/u/{config['info']['creator']}).*
 *Veja meu código fonte: [Código fonte]({config['info']['github']}).*""" # A parte final do comentário
 
                 # Gera o dicionário que contêm os votos
@@ -174,8 +176,7 @@ def runtime():
                                 # Para palavra no comentário...
                                 for sub in comment_body:
                                     sub = sub.strip() # Méteodo strip na palavra....
-                                    replaces = ["!", "?", ".", ",", ":", "(", ")", "[", "]", "{", "}", "-",
-                                                "+", "/", "\\", "'", '"', '~', "\n", "\n\n"]
+                                    replaces = config["replace_list"]
                                     for c in replaces:
                                         sub = sub.replace(c, "") # Remove caractéres especiais
 
@@ -550,12 +551,58 @@ def justification():
         except Exception:
             tools.logger(tp=5, ex=traceback.format_exc())
 
+
+# Filtro para reportar comentários potencialmente perigosos
+def filter():
+    reddit.validate_on_submit = True
+    while True:
+        atime = datetime.datetime.now().timestamp()
+        try:
+            subcount = 0
+            submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"])) # Pega subs
+            
+            for submission in submissons:
+                keywords = tools.getfiletext(open("keywords.txt", "r")) # Palavras de filtro
+
+                time.sleep(config["sleep_time"]["filter_sub"])
+                subcount += 1
+
+                sublist = tools.getfiletext(open("cid", "r")) # Pega a lista de remoções
+                indx = -1
+
+                submission.comment_sort = 'new' # Filtra os comentários por novos
+                submission.comments.replace_more(limit=None)
+                comments = submission.comments.list()
+
+                # Iteração pela lista de comentários
+                for com in comments:
+                    time.sleep(config["sleep_time"]["filter_com"])
+                    if com.id not in sublist:
+                        for x in com.body.lower().replace("\n", " ").replace("\n\n", " ").split(" "):
+                            for letra in x:
+                                replace = config["replace_list"]
+                                if letra in replace:
+                                    x = x.replace(letra, '')
+                            if x in keywords:
+                                # Se o filtro pegar, o comentário vai ser denunciado
+                                com.report(f"Filtro detectou: {x}")
+
+                                tools.logger(ex=x, sub_id=submission.id, com_id=com.id, tp=6)
+
+                        open("cid", "a").write(f"{com.id}\n")
+
+            btime = datetime.datetime.now().timestamp()
+            tools.log_runtime(filter, atime, btime)
+        except Exception:
+            tools.logger(tp=5, ex=traceback.format_exc())
+
+
 if __name__ == '__main__':
     # Preparar os arquivos
     prep.begin()
 
     # Carrega as funções
-    funcs = [runtime, backup, clearlog, textwall, justification]
+    funcs = [runtime, backup, clearlog, textwall, justification, filter]
     processes = [multiprocessing.Process(target=x, args=[], name=x.__name__) for x in funcs] # Inicializa os processos
 
     pids = [os.getpid()]
