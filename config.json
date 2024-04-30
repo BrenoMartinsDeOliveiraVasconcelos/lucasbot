@@ -2,7 +2,7 @@
     "python": "python3.11",
     "info": {
         "name": "Lucas Bot",
-        "version": "24.04d26",
+        "version": "v24.04d30",
         "creator": "JakeWisconsin",
         "github": "https://github.com/BrenoMartinsDeOliveiraVasconcelos/lucasbot",
         "debug": false
@@ -19,7 +19,7 @@
         "backup": 3600,
         "textwall": 1,
         "justification": 2,
-        "filter_sub": 1.5,
+        "filter_sub": 0,
         "filter_com": 0.25
     },
     "flairs": {
@@ -41,8 +41,8 @@
     "vote_name": ["Não é o babaca", "É o babaca", "É o trouxa", "Não há babacas", "Falta informação", "Todos são babacas", "Falso", 
     "Off-topic"],
     "text_filter": {
-        "min_paragraphs": 2,
-        "min_sentences": 3,
+        "min_paragraphs": 1,
+        "min_sentences": 2,
         "max_body": 9000,
         "min_body": 200
     },

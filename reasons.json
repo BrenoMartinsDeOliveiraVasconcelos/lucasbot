@@ -5,7 +5,7 @@
   },
   "TEXTWALL": {
     "note": "Parede de texto",
-    "body": "Sua publicação foi removida. Os motivos podem ser:\n\n* O seu texto só possui um paragráfo, tornando a leitura mais dificil\n* Você não ponutou o texto corretamente\n* O texto é muito longo\n* O texto é muito curto\n\n"
+    "body": "Sua publicação foi removida. Os motivos podem ser:\n\n* O seu texto só possui um paragráfo, tornando a leitura mais dificil (Pelo menos 2 frases)\n* Você não ponutou o texto corretamente\n* O texto é muito longo (>=9000 caractéres)\n* O texto é muito curto (<=200 caractéres)\n\n"
   },
   "TOO_YOUNG": {
     "note": "Idade menor que 13",

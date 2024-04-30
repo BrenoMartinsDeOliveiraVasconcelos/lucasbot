@@ -29,6 +29,7 @@ import traceback
 import random
 import os
 import psutil
+import readline
 
 import preparation as prep
 
@@ -273,20 +274,10 @@ Voto | Quantidade | %
                             commoners += (v/total_ac)*100
 
                 points = int(((assholes - commoners) + 100) * 5) # Por fim, calculado os pontos de babaquice
-                names = ["Extremamente baixo", "Muito baixo", "Baixo", "Médio-baixo", "Médio-alto", "Alto", "Muito alto", "Extremamente alto"]
-                
-                # Jeito gambiarrento de calcular os níveis sem criar uma torre de ifs...
-                levels = []
-                for y in range(0, 8):
-                    for _ in range(0, 126):
-                        levels.append(names[y])
 
-                # Pega o nível da lista de níveis
-                levels.append(names[-1])
-                level = levels[points]
 
                 # Adiciona no corpo do texto
-                ftxt += f"\n# Nível de babaquice: {points/10:.0f}% ({level})"
+                ftxt += f"\n# Nível de babaquice: {points/10:.2f}%"
                 timeval = "\n\nÚltima análise feita em: " \
                    f"{datetime.datetime.now().strftime('%d/%m/%Y às %H:%M')}\n\n " # Última analise...
                 etxt = votxt + timeval + etxt # Junta várias partes do corpo do comentário
@@ -611,15 +602,24 @@ if __name__ == '__main__':
 
     index = -1
     # E os bota para rodar de segundo plano
+    func_total = 0 # total de milisegundos na inicialização da função
     for i in processes:
+        func_start = datetime.datetime.now().timestamp() #ms da função
+        
         index += 1
         i.start()
         pids.append(i.pid) # Salva os pids
-        print(f"Iniciado processo com o PID {i.pid} para a função {funcs[index].__name__}()")
+        
+        func_end = datetime.datetime.now().timestamp() # ms da função
+        func_total += (func_end - func_start)*1000
+
+        print(f"Iniciado processo com o PID {i.pid} para a função {funcs[index].__name__}: {(func_end - func_start)*1000:.0f} ms") 
 
     # Termino do processo de inicializaçãp.
     end = datetime.datetime.now().timestamp()
-    print(f"main: {(end-start)*1000:.0f} ms.")
+
+    total_main = (end-start)*1000
+    print(f"main: {total_main:.0f} ms. ({total_main - func_total:.0f} ms de inicialização e {func_total:.0f} ms de preparação)")
     
     # Loop para os comandos (primeiro plano)
     while True:
@@ -653,3 +653,10 @@ if __name__ == '__main__':
                         mem += memory_info.rss / 1024 / 1024
 
                 print(f"{mem:.0f} mb ({perc:.2f}%)")
+            elif inp[0] == "LOGSTREAM":
+                while True:
+                    user = input("LOG => ") 
+                    if user == "":
+                        print(open("log", "r").readlines()[-1])
+                    else:
+                        break
