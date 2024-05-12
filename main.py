@@ -30,6 +30,7 @@ import random
 import os
 import psutil
 import readline
+import csv
 
 import preparation as prep
 
@@ -58,8 +59,8 @@ reddit = praw.Reddit(
 # Função da thread principal
 def runtime():
     # Parte do meio do comentário
-    botxt = f"\n\n# {config['upper_text']}\n\nVou contar as respostas que as pessoas dão nesse post! Pra ser contado, " \
-            f"responda com essas siglas o post:\n\n"
+    botxt = f"\n\n# {config['upper_text']}\n\nOlá, meu nome é {config['info']['character']} e eu vou contar os votos que as pessoas dão nesse post. Pra seu voto ser contado, " \
+            f"responda o post com uma dessas siglas nos comentários...\n\n"
 
     # Verifica quais são os votos no arquivo de configuração e adiciona no corpo do comentário
     votxt = ["", "", ""]
@@ -127,7 +128,7 @@ def runtime():
                 # Salva as alterações no arquivo de corpos
                 open("./bodies/bodies.json", "w+").write(bodies_json)
                 if submission.id not in sublist: # Se a submissão não tiver nos ids
-                    submission.reply(body="OP, responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento. Não justificar em 1 hora causará remoção.\n\n>!NOEDIT!<")
+                    submission.reply(body="OP, por favor responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento.\n\n>!NOEDIT!<")
                     botcomment = submission.reply(body=ftxt + botxt + etxt) # Responde a publicação com a soma das partes como placeholder
                     tools.logger(0, sub_id=submission.id)
                     botcomment.mod.distinguish(sticky=True) # Marca o comentário como MOD e o fixa
@@ -323,7 +324,7 @@ Voto | Quantidade | %
 
                 # Adiciona a justificativa no corpo do bot
                 ebotxt = botxt
-                ebotxt += f"\n\n## O motivo do op se achar babaca ou não é:\n"
+                ebotxt += f"\n\nDe acordo com u/{submission.author}, o motivo dele se achar ou não um babaca é esse:\n\n"
                 for _ in range(0, 3): # Tentar 3 vezes para caso de erro
                     time.sleep(config["sleep_time"]["main"])
                     try:
@@ -335,7 +336,7 @@ Voto | Quantidade | %
                         break
                     except json.JSONDecodeError:
                         # O erro não interfere no programa aprentemente...
-                        areason = "Erro temporário."
+                        areason = "Erro ao abrir o arquivo, favor falar para a moderação."
 
                 for line in areason.split("\n"):
                     ebotxt += f">{line}\n"
@@ -362,18 +363,26 @@ Voto | Quantidade | %
 
 # Função de backup
 def backup():
+    already_run = False
     while True:
         atime = datetime.datetime.now().timestamp()
         try:
-            folder = f"{config['backup']}/{datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')}" # Pega a pasta para salvar o backup
-            src = "." # O source é a pasta atual
-            shutil.copytree(src, folder, ignore=shutil.ignore_patterns("venv", ".", "__")) # Copia a árvore de pastas
-            tools.logger(2, bprint=False, ex="Backup realizado")
+            current_time = datetime.datetime.now().strftime('%H:%M')
+
+             # Só faz backup em determinados temopos
+            if current_time in config["backup"]["time"] and not already_run:
+                folder = f"{config['backup']['path']}/{datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')}" # Pega a pasta para salvar o backup
+                src = "." # O source é a pasta atual
+                shutil.copytree(src, folder, ignore=shutil.ignore_patterns("venv", ".", "__")) # Copia a árvore de pastas
+                #tools.logger(2, bprint=False, ex="Backup realizado")
+                already_run = True
+                break
+            else:
+                already_run = False
         except:
             pass
-        time.sleep(config["sleep_time"]["backup"]) # Espera 3600 segundos para poder continuar
+        time.sleep(config["sleep_time"]["backup"])
         btime = datetime.datetime.now().timestamp()
-        tools.log_runtime(backup, atime, btime)
         
 
 # Limpador de logs
@@ -590,12 +599,64 @@ def filter():
             tools.logger(tp=5, ex=traceback.format_exc())
 
 
+def stat(): # Estatisticas do subreddit
+    reddit.validate_on_submit = True
+    while True:
+        atime = datetime.datetime.now().timestamp()
+        try:
+            add = False
+            subr = reddit.subreddit(config["subreddit"])
+            with open('members.csv', mode='r') as csv_file:
+                # Checar se ja não foi checado e adicionar caso tenha passado uma hora no arquivo csv
+                csv_r = csv.reader(csv_file, delimiter=";", quotechar='"')
+                csv_table = [row for row in csv_r]
+                date = datetime.datetime.now().strftime('%d/%m/%Y')
+                ctime = datetime.datetime.now().strftime('%H:%M:%S')
+                hour = datetime.datetime.now().strftime('%H')
+
+                last_row = csv_table[-1]
+
+                loop = 0
+                for column in last_row:
+                    if loop == 0:
+                        if column != date:
+                            add = True
+                            break
+                        else:
+                            add = False
+                    elif loop == 1:
+                        if column != ctime:
+                            if hour != column.split(":")[0]:
+                                add = True
+                                break
+                            else:
+                                add == False
+                        else:
+                            add = False
+                    
+                    loop += 1
+  
+            if add:
+                subs = subr.subscribers
+                growt = subs-int(last_row[2])
+
+                reddit.subreddit(f"{config['log_subreddit']}").submit(title=f"{date} {ctime} - GROWT", selftext=f"{subs} (CRESCIMENTO: {growt})")
+                with open("members.csv", "wt") as fp:
+                    writer = csv.writer(fp, delimiter=";")
+                    writer.writerows(csv_table)  # write header
+                    writer.writerow([date, ctime, subs, growt])
+            btime = datetime.datetime.now().timestamp()
+            #tools.log_runtime(stat, atime, btime)
+        except Exception:
+            tools.logger(tp=5, ex=traceback.format_exc())
+
+
 if __name__ == '__main__':
     # Preparar os arquivos
     prep.begin()
 
     # Carrega as funções
-    funcs = [runtime, backup, clearlog, textwall, justification, filter]
+    funcs = [runtime, backup, clearlog, textwall, justification, filter, stat]
     processes = [multiprocessing.Process(target=x, args=[], name=x.__name__) for x in funcs] # Inicializa os processos
 
     pids = [os.getpid()]
@@ -642,17 +703,41 @@ if __name__ == '__main__':
                 os.system(f"{config['python']} ./main.py")
                 break
             elif inp[0] == "MEMORY": # Calcula a memória utilizada pelos processos
-                mem = 0
-                perc = 0
-                all_processes = psutil.process_iter()
+                while True:
+                    try:
+                        mem = 0
+                        perc = 0
+                        index = 0
+                        cputotal = 0
+                        r = 0
+                        all_processes = psutil.process_iter()
 
-                for process in all_processes:
-                    if process.pid in pids:
-                        perc += process.memory_percent()
-                        memory_info = process.memory_info()
-                        mem += memory_info.rss / 1024 / 1024
+                        for process in all_processes:
+                            if process.pid in pids:
+                                perc += process.memory_percent()
+                                memory_info = process.memory_info()
+                                mem_qnt = memory_info.rss / 1024 / 1024
+                                mem += mem_qnt
+                                cpu = process.cpu_percent()
+                                cputotal += cpu
+                                
+                                print(f"{funcs[index].__name__ if r > 0 else 'main'} ({process.pid}): {mem_qnt:.0f} mb, {cpu:.2f}% CPU")
 
-                print(f"{mem:.0f} mb ({perc:.2f}%)")
+                                if r > 0:
+                                    index += 1
+                                
+                                r += 1
+
+                        print(f"Total: {mem:.0f} mb ({perc:.2f}%), {cputotal:.2f}% CPU")
+                        uinput = input("")
+
+                        if uinput != "":
+                            break
+                        os.system("clear")
+                    except KeyboardInterrupt:
+                        os.system(f"{config['python']} ./main.py")
+                        break
+
             elif inp[0] == "LOGSTREAM":
                 while True:
                     user = input("LOG => ") 

@@ -1,6 +1,6 @@
 Bot for reddit
 
-Copyright (C) 2023  Breno Martins
+Copyright (C) 2024  Breno Martins
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

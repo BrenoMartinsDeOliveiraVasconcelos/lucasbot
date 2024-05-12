@@ -12,3 +12,9 @@ aid
 jid
 reasoning
 ignore_list
+pyenv
+cid
+__pycache__
+__venv__
+.idea
+__pycache__

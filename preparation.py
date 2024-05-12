@@ -49,7 +49,7 @@ def begin():
         open("./bodies/bodies.json", "w+").write("{}")
 
     # arquivo de log e id
-    emptytxts = ["idlist", "log", "rid", "aid", "aarid"]
+    emptytxts = ["idlist", "log", "rid", "aid", "aarid", "jid", "cid", "keywords.txt"]
     for i in emptytxts:
         if not os.path.exists(f"./{i}"):
             open(f"./{i}", "w+")
