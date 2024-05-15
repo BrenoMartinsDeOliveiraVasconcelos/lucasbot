@@ -1,6 +1,6 @@
 '''
 This file has some functions used by the main process
-Copyright (C) 2023  Breno Martins
+Copyright (C) 2024  Breno Martins
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,12 +19,12 @@ import datetime
 import io
 import json
 
-config = json.load(open("config.json", "r"))
+config = json.load(open(f"{open('./config_path.txt').readlines()[0]}/config.json", "r"))
 
 
 # Função que escreve no arquivo de log
 def logit(msg):
-    open("log", "a").write(msg + "\n")
+    open(f"{config['list_path']}/log", "a").write(msg + "\n")
 
 
 # Função principal de logging
@@ -61,9 +61,9 @@ def logger(tp, sub_id="", ex="", num="", reason="", bprint=False, com_id=""):
 def log_runtime(func, a: float, b: float):
     # Abrir o arquivo da função para armazenar o tempo de runtime
     try:
-        funct_file = open(f"./runtime_info/{func.__name__}", "a")
+        funct_file = open(f"{config['list_path']}/runtime_info/{func.__name__}", "a")
     except FileNotFoundError:
-        funct_file = open(f"./runtime_info/{func.__name__}", "w+")
+        funct_file = open(f"{config['list_path']}/runtime_info/{func.__name__}", "w+")
 
     difference_runtime = b - a
     # O resultado da diferença entre as timestamps em milisegundos ACIMA.

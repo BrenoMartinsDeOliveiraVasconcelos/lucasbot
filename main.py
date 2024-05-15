@@ -1,13 +1,13 @@
 '''
 This file is the main file
-Copyright (C) 2023  Breno Martins
+Copyright (C) 2024  Breno Martins
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,nnnnnnnnnnnnn
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
@@ -38,10 +38,13 @@ import preparation as prep
 start = datetime.datetime.now().timestamp()
 
 # Carregamento dos arquivos json de configuração
-config = json.load(open('config.json', 'r')) # Configurações do bot
-api = json.load(open("api.json", "r")) # Configurações da API
-splashes = json.load(open('splashes.json', 'r')) # Mensagens localizadas no final do comentário do bot
-reasons = json.load(open("reasons.json", "r")) # Motivos para punição automatizada
+
+config_path = open("./config_path.txt").readlines()[0]
+
+config = json.load(open(f'{config_path}/config.json', 'r')) # Configurações do bot
+api = json.load(open(f"{config['config']}/api.json", "r")) # Configurações da API
+splashes = json.load(open(f"{config['config']}/splashes.json", 'r')) # Mensagens localizadas no final do comentário do bot
+reasons = json.load(open(f"{config['config']}/reasons.json", "r")) # Motivos para punição automatizada
 boot = True
 
 print(f"Bem-vindo!")
@@ -108,16 +111,16 @@ def runtime():
                         assholecount[flair] = 0
 
                 # Pega a lista de ids usando a função getflietext()
-                sublist = tools.getfiletext(open("idlist", "r"))
+                sublist = tools.getfiletext(open(f"{config['list_path']}/idlist", "r"))
 
                 indx = -1
-                bdlist = open("bodies/bdlist", "r").readlines()
+                bdlist = open(f"{config['list_path']}/bodies/bdlist", "r").readlines()
                 for sub in bdlist:
                     indx += 1
                     bdlist[indx] = sub.strip()
                 indx = -1
                 # abrir a lista de corpos já salvos ou não
-                bodylist = json.load(open("./bodies/bodies.json", "r"))
+                bodylist = json.load(open(f"{config['list_path']}/bodies/bodies.json", "r"))
                 try:
                     bodylist[f"{submission.id}"]
                 except KeyError:
@@ -126,7 +129,7 @@ def runtime():
                 bodies_json = json.dumps(bodylist, indent=4)
 
                 # Salva as alterações no arquivo de corpos
-                open("./bodies/bodies.json", "w+").write(bodies_json)
+                open(f"{config['list_path']}/bodies/bodies.json", "w+").write(bodies_json)
                 if submission.id not in sublist: # Se a submissão não tiver nos ids
                     submission.reply(body="OP, por favor responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento.\n\n>!NOEDIT!<")
                     botcomment = submission.reply(body=ftxt + botxt + etxt) # Responde a publicação com a soma das partes como placeholder
@@ -135,7 +138,7 @@ def runtime():
                     botcomment.mod.approve() # Aprova o comentário
                     sublist.append(submission.id) # Coloca o post na lista de ids
                     submission.flair.select(config["flairs"]["NOT_CLASSIFIED"][0]) # Seleciona a flair de não classificado aind
-                    with open('idlist', 'a') as f:
+                    with open(f"{config['list_path']}/idlist", 'a') as f:
                         f.write(submission.id + '\n') # Grava a nova lista de ids
                 submission.comment_sort = 'new' # Filtra os comentários por novos
                 submission.comments.replace_more(limit=None)
@@ -285,7 +288,7 @@ Voto | Quantidade | %
                 if percent >= 0.5 and total > 0:
                     submission.flair.select(config["flairs"][key][0]) # Seleciona a flair se tiver uma maioria.
                     if key in ["FANFIC", "OT"]: # Se o voto mais top tiver em um desses dois ai...
-                        removes = open('rid', "r").readlines() # Checa a lista de remoções
+                        removes = open(f"{config['list_path']}/rid", "r").readlines() # Checa a lista de remoções
 
                         indx = -1
                         for sub in removes:
@@ -299,7 +302,7 @@ Voto | Quantidade | %
                             submission.mod.remove(mod_note=f"{reason['note']}", spam=False)
                             submission.reply(body=f"{reason['body']}")
                             tools.logger(tp=4, sub_id=submission.id, reason="VIolação")
-                            open("rid", "a").write(f"{submission.id}\n")
+                            open(f"{config['list_path']}/rid", "a").write(f"{submission.id}\n")
                 # Se a porcaentagem está fora da média, seleciona a flair de fora da média
                 elif percent < 0.5 and total > 0:
                     submission.flair.select(config["flairs"]["INCONCLUSIVE"][0])
@@ -311,7 +314,7 @@ Voto | Quantidade | %
                 notInBody = False
                 if submission.id not in bdlist: # Se a bumissão não tiver na lista de corpos...
                     notInBody = True
-                    open('./bodies/bdlist', "a").write(f"{submission.id}\n")
+                    open(f"{config['list_path']}/bodies/bdlist", "a").write(f"{submission.id}\n")
 
                 body_obj = bodylist[f"{submission.id}"].split("\n\n") # Pega o corpo do comentário
                 index = 0
@@ -328,7 +331,7 @@ Voto | Quantidade | %
                 for _ in range(0, 3): # Tentar 3 vezes para caso de erro
                     time.sleep(config["sleep_time"]["main"])
                     try:
-                        reasoning = json.load(open("reasoning/reasonings.json", "r"))
+                        reasoning = json.load(open(f"{config['list_path']}/reasoning/reasonings.json", "r"))
                         areason = reasoning[submission.id]
                         break
                     except KeyError:
@@ -408,7 +411,7 @@ def textwall():
                 subcount += 1
                 subid = submission.id
 
-                sublist = tools.getfiletext(open("rid", "r")) # Pega a lista de remoções
+                sublist = tools.getfiletext(open(f"{config['list_path']}/rid", "r")) # Pega a lista de remoções
                 indx = -1
 
                 for i in sublist:
@@ -464,7 +467,7 @@ def textwall():
                         submission.reply(body=reason['body']+f"\n\nParágrafos: {paragraphs}\n\nFrases: {sentences}\n\nCaractéres: {chars}")
                         tools.logger(tp=4, sub_id=subid, reason="Parede de texto")
 
-                        open("rid", "a").write(f"{subid}\n")
+                        open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
             btime = datetime.datetime.now().timestamp()
             tools.log_runtime(textwall, atime, btime)
         except Exception:
@@ -483,7 +486,7 @@ def justification():
             subcount = 0
             submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
             for submission in submissons:
-                reasonings = json.load(open(f"reasoning/reasonings.json", "r"))
+                reasonings = json.load(open(f"{config['list_path']}/reasoning/reasonings.json", "r"))
                 now = datetime.datetime.now().timestamp()
                 time.sleep(config["sleep_time"]["justification"])
                 subcount += 1
@@ -524,10 +527,10 @@ def justification():
                                 break
 
                 # Para fins de evitar flood de remoções, verifica se o id não está na lista de ignorados
-                igl = tools.getfiletext(open("ignore_list", "r"))
+                igl = tools.getfiletext(open(f"{config['list_path']}/ignore_list", "r"))
 
                 if not didOPans and subid not in igl:
-                    rid = tools.getfiletext(open("rid", "r")) # Abrir a lista de remoções
+                    rid = tools.getfiletext(open(f"{config['list_path']}/rid", "r")) # Abrir a lista de remoções
                     # Se o timestamp de criação - timestamp de agora for maior que 1 hora...
                     if now - submission.created_utc >= 3600:
                         if subid not in rid:
@@ -536,17 +539,17 @@ def justification():
                                 submission.mod.remove(mod_note=removal['note'], spam=False)
                                 submission.reply(body=removal['body'])
                             tools.logger(tp=4, sub_id=subid, reason="Sem justificativa")
-                            open("rid", "a").write(f"{subid}\n")
+                            open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
                 else:
                     if subid in igl:
                         reason = "Post postado antes de precisar justificar."
-                    open("jid", "a").write(f"{subid}\n")
+                    open(f"{config['list_path']}/jid", "a").write(f"{subid}\n")
 
                     # Salva o motivo
                     reasonings[subid] = reason
 
                     rstr = json.dumps(reasonings, indent=4)
-                    open(f"reasoning/reasonings.json", "w").write(rstr)
+                    open(f"{config['list_path']}/reasoning/reasonings.json", "w").write(rstr)
 
             btime = datetime.datetime.now().timestamp()
             tools.log_runtime(justification, atime, btime)
@@ -564,12 +567,12 @@ def filter():
             submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"])) # Pega subs
             
             for submission in submissons:
-                keywords = tools.getfiletext(open("keywords.txt", "r")) # Palavras de filtro
+                keywords = tools.getfiletext(open(f"{config['list_path']}/keywords.txt", "r")) # Palavras de filtro
 
                 time.sleep(config["sleep_time"]["filter_sub"])
                 subcount += 1
 
-                sublist = tools.getfiletext(open("cid", "r")) # Pega a lista de remoções
+                sublist = tools.getfiletext(open(f"{config['list_path']}/cid", "r")) # Pega a lista de remoções
                 indx = -1
 
                 submission.comment_sort = 'new' # Filtra os comentários por novos
@@ -591,7 +594,7 @@ def filter():
 
                                 tools.logger(ex=x, sub_id=submission.id, com_id=com.id, tp=6)
 
-                        open("cid", "a").write(f"{com.id}\n")
+                        open(f"{config['list_path']}/cid", "a").write(f"{com.id}\n")
 
             btime = datetime.datetime.now().timestamp()
             tools.log_runtime(filter, atime, btime)
@@ -604,9 +607,10 @@ def stat(): # Estatisticas do subreddit
     while True:
         atime = datetime.datetime.now().timestamp()
         try:
+            time.sleep(0.5)
             add = False
             subr = reddit.subreddit(config["subreddit"])
-            with open('members.csv', mode='r') as csv_file:
+            with open(f'{config["stat"]["csv_path"]}/members.csv', mode='r') as csv_file:
                 # Checar se ja não foi checado e adicionar caso tenha passado uma hora no arquivo csv
                 csv_r = csv.reader(csv_file, delimiter=";", quotechar='"')
                 csv_table = [row for row in csv_r]
@@ -618,13 +622,7 @@ def stat(): # Estatisticas do subreddit
 
                 loop = 0
                 for column in last_row:
-                    if loop == 0:
-                        if column != date:
-                            add = True
-                            break
-                        else:
-                            add = False
-                    elif loop == 1:
+                    if loop == 1:
                         if column != ctime:
                             if hour != column.split(":")[0]:
                                 add = True
@@ -635,16 +633,19 @@ def stat(): # Estatisticas do subreddit
                             add = False
                     
                     loop += 1
-  
-            if add:
-                subs = subr.subscribers
-                growt = subs-int(last_row[2])
 
-                reddit.subreddit(f"{config['log_subreddit']}").submit(title=f"{date} {ctime} - GROWT", selftext=f"{subs} (CRESCIMENTO: {growt})")
-                with open("members.csv", "wt") as fp:
+            time.sleep(config["sleep_time"]["stat"])
+            subs = subr.subscribers
+            growt = subs-int(last_row[2])
+
+            with open(f"{config['stat']['csv_path']}/members.csv", "wt") as fp:
                     writer = csv.writer(fp, delimiter=";")
                     writer.writerows(csv_table)  # write header
                     writer.writerow([date, ctime, subs, growt])
+
+            if add:
+                reddit.subreddit(f"{config['log_subreddit']}").submit(title=f"{date} {int(hour)-1 if int(hour) >= 1 else '23'}-{ctime} - GROWT", selftext=f"{subs} (CRESCIMENTO: {growt})")
+            
             btime = datetime.datetime.now().timestamp()
             #tools.log_runtime(stat, atime, btime)
         except Exception:
@@ -653,7 +654,7 @@ def stat(): # Estatisticas do subreddit
 
 if __name__ == '__main__':
     # Preparar os arquivos
-    prep.begin()
+    prep.begin(config)
 
     # Carrega as funções
     funcs = [runtime, backup, clearlog, textwall, justification, filter, stat]

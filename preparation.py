@@ -1,6 +1,6 @@
 '''
 Stores initialization functions
-Copyright (C) 2023  Breno Martins
+Copyright (C) 2024  Breno Martins
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,43 +19,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 
 
-def begin():
+def begin(config: dict):
     '''
     Prepara os arquivos que serão usados pelo script
     :return: None
     '''
     # Função de preparação
-    files = ["number_comments.json"]
-    if os.path.exists("./data"):
-        # Ok, vamos checar se existe os arquivos necessários
-        for i in files:
-            if not os.path.exists(f"./data/{i}"):
-                open(f"./data/{i}", "w+").write("{}")
-    else:
-        os.mkdir("./data")
-        for i in files:
-            open(f"./data/{i}", "w+").write("{}")
 
     #./bodies
-    if os.path.exists("./bodies"):
-        if not os.path.exists("./bodies/bdlist"):
-            open("./bodies/bdlist", "w+")
+    if os.path.exists(f"{config['list_path']}/bodies"):
+        if not os.path.exists(f"{config['list_path']}/bodies/bdlist"):
+            open(f"{config['list_path']}/bodies/bdlist", "w+")
 
-        if not os.path.exists("./bodies/bodies.json"):
-            open("./bodies/bodies.json", "w+").write("{}")
+        if not os.path.exists(f"{config['list_path']}/bodies/bodies.json"):
+            open(f"{config['list_path']}/bodies/bodies.json", "w+").write("{}")
+
+        if not os.path.exists(f"{config['list_path']}/reasoning/reasonings.json"):
+            open(f"{config['list_path']}/reasoning/reasonings.json", "w+").write("{}")
     else:
-        os.mkdir("./bodies")
-        open("./bodies/bdlist", "w+")
-        open("./bodies/bodies.json", "w+").write("{}")
+        os.mkdir(f"{config['list_path']}/bodies")
+        open(f"{config['list_path']}/bodies/bdlist", "w+")
+        open(f"{config['list_path']}/bodies/bodies.json", "w+").write("{}")
 
     # arquivo de log e id
     emptytxts = ["idlist", "log", "rid", "aid", "aarid", "jid", "cid", "keywords.txt"]
     for i in emptytxts:
-        if not os.path.exists(f"./{i}"):
-            open(f"./{i}", "w+")
+        if not os.path.exists(f"{config['list_path']}/{i}"):
+            open(f"{config['list_path']}/{i}", "w+")
 
     # Pastas vazias
     folders = ["runtime_info"]
     for i in folders:
-        if not os.path.exists(f'./{i}'):
-            os.mkdir(f"./{i}")
+        if not os.path.exists(f"{config['list_path']}/{i}"):
+            os.mkdir(f"{config['list_path']}/{i}")
