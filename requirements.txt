@@ -1,3 +1,4 @@
 praw
 prawcore
 psutil
+mysql-connector-python
