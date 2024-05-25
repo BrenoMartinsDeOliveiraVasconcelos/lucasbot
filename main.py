@@ -31,6 +31,8 @@ import os
 import psutil
 import readline
 import csv
+import mysql.connector
+
 
 import preparation as prep
 
@@ -39,24 +41,43 @@ start = datetime.datetime.now().timestamp()
 
 # Carregamento dos arquivos json de configuração
 
+
 config_path = open("./config_path.txt").readlines()[0]
 
 config = json.load(open(f'{config_path}/config.json', 'r')) # Configurações do bot
-api = json.load(open(f"{config['config']}/api.json", "r")) # Configurações da API
-splashes = json.load(open(f"{config['config']}/splashes.json", 'r')) # Mensagens localizadas no final do comentário do bot
+#api = json.load(open(f"{config['config']}/api.json", "r")) # Configurações da API
+#splashes = json.load(open(f"{config['config']}/splashes.json", 'r')) # Mensagens localizadas no final do comentário do bot
 reasons = json.load(open(f"{config['config']}/reasons.json", "r")) # Motivos para punição automatizada
 boot = True
 
 print(f"Bem-vindo!")
 
+# Carregar o banco de dados para pegar informações
+sql = mysql.connector.connect(
+    host=config["db"]["host"],
+    user=config["db"]["user"],
+    password=input(f"Senha do banco de dados: "),
+    database=config["db"]["database"]
+)
+apid = int(config['db']['api_id'])
+    
+cursor = sql.cursor()
+
+cursor.execute(f"SELECT * FROM users WHERE id={apid};")
+api_t = cursor.fetchall()
+
 # Entrar no reddit
 reddit = praw.Reddit(
-    user_agent=api["useragent"],
-    client_id=api["clientid"],
-    client_secret=api["clientsecret"],
-    username=api["username"],
-    password=api["password"]
+    user_agent=api_t[0][5],
+    client_id=api_t[0][2],
+    client_secret=api_t[0][3],
+    username=api_t[0][1],
+    password=api_t[0][4]
 )
+
+api = {
+    "username": api_t[0][1]
+}
 
 
 # Função da thread principal
@@ -78,6 +99,7 @@ def runtime():
     # Loop principal da função 
     while True:
         try:
+
             # Texto placeholder para a parte que diz o veredito atual
             ftxt = f"# Veredito atual:" \
                    f" Não processado ainda\n\n"
@@ -87,6 +109,7 @@ def runtime():
 
             # Loop para iterar nas submissões
             for submission in submissons:
+                sql.commit()
                 flairchanges = []
                 edits = []
                 adds = []
@@ -96,7 +119,13 @@ def runtime():
 
                 if submission.created_utc <= timestmp:
                     break # quebra o loop se o tempo de agora - x dias for maior que o tempo que criado.
+                # Pegar os splashes
+                cursor.execute(f"SELECT text FROM splashes WHERE owner={apid};")
 
+                splashes = []
+                for x in cursor.fetchall():
+                    splashes.append(x[0]) 
+           
                 joke = random.choice(splashes) # Escolhe qual a mensagem vai ficar no final
                 etxt = f"""
                                 
@@ -375,15 +404,15 @@ def backup():
              # Só faz backup em determinados temopos
             if current_time in config["backup"]["time"] and not already_run:
                 folder = f"{config['backup']['path']}/{datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')}" # Pega a pasta para salvar o backup
-                src = "." # O source é a pasta atual
-                shutil.copytree(src, folder, ignore=shutil.ignore_patterns("venv", ".", "__")) # Copia a árvore de pastas
+                src_list = [".", config_path, config["list_path"]] # O sources
+                for src in src_list:
+                    shutil.copytree(src, f"{folder}/{src.split('/')[-1] if src != '.' else 'Main'}", ignore=shutil.ignore_patterns("venv", "__", "pyenv")) # Copia a árvore de pastas
                 #tools.logger(2, bprint=False, ex="Backup realizado")
                 already_run = True
-                break
             else:
                 already_run = False
-        except:
-            pass
+        except Exception:
+            print(traceback.format_exc())
         time.sleep(config["sleep_time"]["backup"])
         btime = datetime.datetime.now().timestamp()
         
@@ -605,54 +634,40 @@ def filter():
 def stat(): # Estatisticas do subreddit
     reddit.validate_on_submit = True
     while True:
-        atime = datetime.datetime.now().timestamp()
         try:
-            time.sleep(0.5)
+            time.sleep(config["sleep_time"]["stat"])
             add = False
             subr = reddit.subreddit(config["subreddit"])
-            with open(f'{config["stat"]["csv_path"]}/members.csv', mode='r') as csv_file:
-                # Checar se ja não foi checado e adicionar caso tenha passado uma hora no arquivo csv
-                csv_r = csv.reader(csv_file, delimiter=";", quotechar='"')
-                csv_table = [row for row in csv_r]
-                date = datetime.datetime.now().strftime('%d/%m/%Y')
-                ctime = datetime.datetime.now().strftime('%H:%M:%S')
-                hour = datetime.datetime.now().strftime('%H')
 
-                last_row = csv_table[-1]
+            sql.commit()
+            cursor.execute("SELECT max(id) FROM statistics")
+            last_id = int(cursor.fetchall()[0][0])
 
-                loop = 0
-                for column in last_row:
-                    if loop == 1:
-                        if column != ctime:
-                            if hour != column.split(":")[0]:
-                                add = True
-                                break
-                            else:
-                                add == False
-                        else:
-                            add = False
-                    
-                    loop += 1
+            # Checar se ja não foi checado e adicionar caso tenha passado uma hora no arquivo csv
+            sql_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-            time.sleep(config["sleep_time"]["stat"])
             subs = subr.subscribers
-            growt = subs-int(last_row[2])
-
-            with open(f"{config['stat']['csv_path']}/members.csv", "wt") as fp:
-                    writer = csv.writer(fp, delimiter=";")
-                    writer.writerows(csv_table)  # write header
-                    writer.writerow([date, ctime, subs, growt])
-
-            if add:
-                reddit.subreddit(f"{config['log_subreddit']}").submit(title=f"{date} {int(hour)-1 if int(hour) >= 1 else '23'}-{ctime} - GROWT", selftext=f"{subs} (CRESCIMENTO: {growt})")
             
-            btime = datetime.datetime.now().timestamp()
+            cursor.execute(f"SELECT members FROM statistics WHERE id={last_id}")
+
+            last_members = int(cursor.fetchall()[0][0])
+            growt = subs-last_members
+            growt_perc = ((subs-last_members)/last_members)*100
+
+            cursor.execute(f"INSERT INTO statistics (`id`, `owner`, `datetime`, `members`, `growt`, `growt_percent`) VALUES ({last_id+1}, {apid}, '{sql_time}', {subs}, {growt}, {growt_perc})")
+
+            sql.commit()
+           # if add:
+            #    reddit.subreddit(f"{config['log_subreddit']}").submit(title=f"{date} {int(hour)-1 if int(hour) >= 1 else '23'}-{ctime} - GROWT", selftext=f"{subs} (CRESCIMENTO: {growt})")
+            
             #tools.log_runtime(stat, atime, btime)
+
         except Exception:
             tools.logger(tp=5, ex=traceback.format_exc())
 
 
 if __name__ == '__main__':
+    os.system("cls" if os.name=="nt" else "clear")
     # Preparar os arquivos
     prep.begin(config)
 
@@ -689,8 +704,7 @@ if __name__ == '__main__':
         if len(inp) >= 1:
             if inp[0] == "R": # Se o input do usuário for R, vai simplesmente reccarregar os valores. (Não testado)
                 config = json.load(open('config.json', 'r'))
-                api = json.load(open("api.json"))
-                splashes = json.load(open('splashes.json', 'r'))
+                sql.commit()
                 print("Valores recarregados na memória.")
             elif inp[0] == "E": # E termina o programa.
                 for i in processes:
@@ -746,3 +760,14 @@ if __name__ == '__main__':
                         print(open("log", "r").readlines()[-1])
                     else:
                         break
+            elif inp[0] == "ADDSPLASH":
+                sql.commit()
+                cursor.execute(f"SELECT id FROM splashes WHERE owner={apid}")
+                lastid = int(cursor.fetchall()[-1][0])
+                
+                try:
+                    cursor.execute(f"INSERT INTO splashes (id, owner, text) VALUES ({lastid+1}, {apid}, {str(input('Texto: '))})")
+                except Exception as e:
+                    print(traceback.format_exc())
+
+                sql.commit()

@@ -20,3 +20,5 @@ __venv__
 __pycache__
 teste
 config_path.txt
+__venv__
+venv
