@@ -1,0 +1,65 @@
+{
+    "python": "/home/breno/Codes/lucasbot/pyenv/bin/python3",
+    "db": {
+        "host": "IP DO BANCO DE DADOS SEM A PORTA",
+        "user": "USUARIO",
+        "database": "BANCO DE DADOS",
+        "api_id": 1
+    },
+    "info": {
+        "name": "NOME DO BOT",
+        "character": "PERSONAGEM DO BOT",
+        "version": "VERSÃO DO BOT",
+        "creator": "CRIADOR (JakeWisconsin)",
+        "github": "REPOSITORIO DO GITHUB",
+        "debug": false
+    },
+    "config": "CAMINHO DA PASTA ONDE TEM OS ARQUIVOS DE CONFIGURAÇÃO",
+    "upper_text": "TEXTO QUE FICA DEBAIXO DOS RESULTADOS DA VOTAÇÃO",
+    "submissions": "NUMERO DE POSTS REQUISITADOS NA API DO praw",
+    "subreddit": "SUBREDDIT",
+    "log_subreddit": "SUBREDDIT DE LOG",
+    "backup": {
+        "path": "PASTA ONDE FICA OS BACKUPS",
+        "time": ["HH:MM"]
+    },
+    "stat": {
+        "csv_path": "ONDE FICA SALVO O ARQUIVO CSV (NAO UTILIZADO)"
+    },
+    "list_path": "ONDE FICA OS ARQUIVOS DE TEXTO USADOS PELO BOT",
+    "clear_log": 86400,
+    "break_time": 604800,
+    "replace_list": ["!", "?", ".", ",", ":", "(", ")", "[", "]", "{", "}", "-", "+", "/", "\\", "'", "\u0022", "~", "\n", "\n\n"],
+    "sleep_time": {
+        "main": 0.1,
+        "textwall": 1,
+        "justification": 2,
+        "filter_sub": 0,
+        "filter_com": 0.25,
+        "backup": 60,
+        "stat": 3600 
+    },
+    "flairs": {
+        "VOTO_COMUM": ["ID DA FLAIR DO POST", 0, "DESCRIÇÃO DO VOTO QUE VAI SER USADO PARA CONTAR O JULGAMENTO"],
+        "VOTO_COMUM_BABACA": ["ID DA FLAIR DO POST", 0, "DESCRIÇÃO DO VOTO QUE VAI SER USADO PARA CONTAR O JULGAMENTO"],
+        "VOTO_REMOVEDOR": ["ID DA FLAIR DO POST", 1, "DESCRIÇÃO"],
+        "INCONCLUSIVE": ["ID DA FLAIR ESPECIAL PARA SEM MAIORIA", 2, ""],
+        "NOT_AVALIABLE": ["ID DA FLAIR ESPECIAL PARA NÃO DISPONÍVEL", 2, ""],
+        "NOT_CLASSIFIED": ["ID DA FLAIR ESPECIAL PARA NÃO CLASSIFICADO", 2, ""]
+    },
+    "flairs_ignore": ["INCONCLUSIVE", "NOT_AVALIABLE", "NOT_CLASSIFIED"],
+    "asshole": ["VOTO_COMUM_BABACA"],
+    "not_asshole": ["VOTO_COMUM"],
+    "vote_name": ["NOME VOTO 1", "NOME VOTO 2", "NOME VOTO 3"],
+    "text_filter": {
+        "min_paragraphs": 1,
+        "min_sentences": 2,
+        "max_body": 9000,
+        "min_body": 200
+    },
+    "karma_filter": {
+        "enabled": false,
+        "min": 2,
+        "wait": 3600
+    }
+}

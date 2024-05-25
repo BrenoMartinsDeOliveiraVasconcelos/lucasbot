@@ -1,0 +1,3 @@
+/home/breno/Disk2/Settings
+
+ESSE ARQUIVO É ONDE VOCÊ COLOCA A PASTA ONDE ESTÁ OS ARQUIVOS "config.json", "reasons.json". COLOQUE O CAMINHO NA PRIMEIRA LINHA!!

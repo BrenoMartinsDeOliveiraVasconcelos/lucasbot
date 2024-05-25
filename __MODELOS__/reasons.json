@@ -1,0 +1,14 @@
+{
+  "FAKE_OT": {
+    "note": "NOTA REMOÇÃO PARA POST FORA DO SUB",
+    "body": "TEXTO DO COMENTÁRIO"
+  },
+  "TEXTWALL": {
+    "note": "NOTA REMOÇÃO PARA PAREDE DE TEXTO",
+    "body": "CORPO DO TEXTO"
+  },
+  "NO_REASON": {
+    "note": "Não justificou o post",
+    "body": "Sua publicação foi removida pois você não justificou o post."
+  }
+}
