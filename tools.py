@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import datetime
 import io
 import json
+import os
 
 config = json.load(open(f"{open('./config_path.txt').readlines()[0]}/config.json", "r"))
 
@@ -91,3 +92,7 @@ def getfiletext(file: io.TextIOWrapper) -> list:
         indx = 0
 
     return text
+
+
+def clear_console() -> None:
+    os.system("cls" if os.name=="nt" else "clear")

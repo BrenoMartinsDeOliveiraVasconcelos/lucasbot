@@ -53,12 +53,17 @@ boot = True
 print(f"Bem-vindo!")
 
 # Carregar o banco de dados para pegar informações
-sql = mysql.connector.connect(
-    host=config["db"]["host"],
-    user=config["db"]["user"],
-    password=input(f"Senha do banco de dados: "),
-    database=config["db"]["database"]
-)
+try:
+    sql = mysql.connector.connect(
+        host=config["db"]["host"],
+        user=config["db"]["user"],
+        password=input(f"Senha do banco de dados: "),
+        database=config["db"]["database"]
+    )
+except mysql.connector.ProgrammingError:
+    print("Permissão negada!")
+    exit()
+
 apid = int(config['db']['api_id'])
     
 cursor = sql.cursor()
@@ -667,7 +672,7 @@ def stat(): # Estatisticas do subreddit
 
 
 if __name__ == '__main__':
-    os.system("cls" if os.name=="nt" else "clear")
+    tools.clear_console()
     # Preparar os arquivos
     prep.begin(config)
 
@@ -755,9 +760,10 @@ if __name__ == '__main__':
 
             elif inp[0] == "LOGSTREAM":
                 while True:
-                    user = input("LOG => ") 
+                    user = input("")
+                    tools.clear_console() 
                     if user == "":
-                        print(open("log", "r").readlines()[-1])
+                        print(open(f"{config['list_path']}/log", "r").readlines()[-1])
                     else:
                         break
             elif inp[0] == "ADDSPLASH":
@@ -771,3 +777,4 @@ if __name__ == '__main__':
                     print(traceback.format_exc())
 
                 sql.commit()
+
