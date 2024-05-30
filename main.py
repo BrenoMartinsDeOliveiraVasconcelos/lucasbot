@@ -37,7 +37,7 @@ import mysql.connector
 import preparation as prep
 
 # Timestamp do inicio do programa
-start = datetime.datetime.now().timestamp()
+start1 = datetime.datetime.now().timestamp()
 
 # Carregamento dos arquivos json de configuração
 
@@ -53,6 +53,7 @@ boot = True
 print(f"Bem-vindo!")
 
 # Carregar o banco de dados para pegar informações
+end1 = datetime.datetime.now().timestamp()
 try:
     sql = mysql.connector.connect(
         host=config["db"]["host"],
@@ -63,6 +64,7 @@ try:
 except mysql.connector.ProgrammingError:
     print("Permissão negada!")
     exit()
+start2 = datetime.datetime.now().timestamp()
 
 apid = int(config['db']['api_id'])
     
@@ -698,9 +700,10 @@ if __name__ == '__main__':
         print(f"Iniciado processo com o PID {i.pid} para a função {funcs[index].__name__}: {(func_end - func_start)*1000:.0f} ms") 
 
     # Termino do processo de inicializaçãp.
-    end = datetime.datetime.now().timestamp()
+    end2 = datetime.datetime.now().timestamp()
 
-    total_main = (end-start)*1000
+    total_main = ((end2-start2) + (end1-start1)) * 1000 # Formula feita para ignorar o tempo de input da api do mysql
+    
     print(f"main: {total_main:.0f} ms. ({total_main - func_total:.0f} ms de inicialização e {func_total:.0f} ms de preparação)")
     
     # Loop para os comandos (primeiro plano)
@@ -777,4 +780,15 @@ if __name__ == '__main__':
                     print(traceback.format_exc())
 
                 sql.commit()
+            elif inp[0] == "INJECT":
+                if config["info"]["injectable"]:
+                    while True:
+                        try:
+                            eval(input("INJECT => "))
+                        except SyntaxError:
+                            break
+                        except Exception as e:
+                            print(traceback.format_exc())
+                else:
+                    print("Não é possível usar esse comando se 'injectable' for False.")
 

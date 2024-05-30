@@ -24,5 +24,6 @@ Depois de instalar as bibliotecas necessárias usando `python3 -m pip install -r
 | E| Termina o programa |
 | MEMORY| Calcula a memória e o CPU usado em cada processo. ENTER para atualizar, digite qualquer coisa e aperte ENTER para sair do loop. |
 | LOGSTREAM | Mostra o registro do log em tempo real |
-| ADDSPLASH | Adiciona um texto de piada |
+| ADDSPLASH | Adiciona um texto debaixo do indicador de veredito |
+ INJECT | Se injectable em config.json for True, abre um console python da sessão |
 

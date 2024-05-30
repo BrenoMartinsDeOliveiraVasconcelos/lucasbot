@@ -12,7 +12,8 @@
         "version": "VERSÃO DO BOT",
         "creator": "CRIADOR (JakeWisconsin)",
         "github": "REPOSITORIO DO GITHUB",
-        "debug": false
+        "log_verbose": false,
+        "injectable": true
     },
     "config": "CAMINHO DA PASTA ONDE TEM OS ARQUIVOS DE CONFIGURAÇÃO",
     "upper_text": "TEXTO QUE FICA DEBAIXO DOS RESULTADOS DA VOTAÇÃO",

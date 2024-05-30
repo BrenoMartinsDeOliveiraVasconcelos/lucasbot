@@ -53,7 +53,7 @@ def logger(tp, sub_id="", ex="", num="", reason="", bprint=False, com_id=""):
         msg = f"Comentário denunciado: {ex} em {sub_id}/{com_id}"
 
     msg = f"[{current_time}] "+msg
-    if config["info"]["debug"]:
+    if config["info"]["log_verbose"]:
         print(msg)
 
     logit(msg)
