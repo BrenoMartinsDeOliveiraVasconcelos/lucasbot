@@ -19,6 +19,7 @@ import datetime
 import io
 import json
 import os
+import time
 
 config = json.load(open(f"{open('./config_path.txt').readlines()[0]}/config.json", "r"))
 
@@ -43,6 +44,7 @@ def logger(tp, sub_id="", ex="", num="", reason="", bprint=False, com_id=""):
         if tp == 5:
             print(f"ERRO ({current_time}): {ex}")
 
+            time.sleep(1)
         if bprint:
             print(ex)
     elif tp == 3:
@@ -53,7 +55,7 @@ def logger(tp, sub_id="", ex="", num="", reason="", bprint=False, com_id=""):
         msg = f"Comentário denunciado: {ex} em {sub_id}/{com_id}"
 
     msg = f"[{current_time}] "+msg
-    if config["info"]["log_verbose"]:
+    if config["debug"]["log_verbose"]:
         print(msg)
 
     logit(msg)

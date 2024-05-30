@@ -11,9 +11,11 @@
         "character": "PERSONAGEM DO BOT",
         "version": "VERSÃO DO BOT",
         "creator": "CRIADOR (JakeWisconsin)",
-        "github": "REPOSITORIO DO GITHUB",
+        "github": "REPOSITORIO DO GITHUB"
+    },
+    "debug": {
         "log_verbose": false,
-        "injectable": true
+        "injectable": false
     },
     "config": "CAMINHO DA PASTA ONDE TEM OS ARQUIVOS DE CONFIGURAÇÃO",
     "upper_text": "TEXTO QUE FICA DEBAIXO DOS RESULTADOS DA VOTAÇÃO",

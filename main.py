@@ -781,7 +781,7 @@ if __name__ == '__main__':
 
                 sql.commit()
             elif inp[0] == "INJECT":
-                if config["info"]["injectable"]:
+                if config["debug"]["injectable"]:
                     while True:
                         try:
                             eval(input("INJECT => "))
