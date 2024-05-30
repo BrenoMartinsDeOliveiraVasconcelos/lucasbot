@@ -791,4 +791,6 @@ if __name__ == '__main__':
                             print(traceback.format_exc())
                 else:
                     print("Não é possível usar esse comando se 'injectable' for False.")
+            else:
+                print(f"O comando {inp[0]} não é válido.")
 
