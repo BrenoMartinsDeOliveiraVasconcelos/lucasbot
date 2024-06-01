@@ -42,7 +42,7 @@ def begin(config: dict):
         open(f"{config['list_path']}/bodies/bodies.json", "w+").write("{}")
 
     # arquivo de log e id
-    emptytxts = ["idlist", "log", "rid", "aid", "aarid", "jid", "cid", "keywords.txt"]
+    emptytxts = ["idlist", "log", "rid", "aid", "aarid", "jid", "cid", "keywords.txt", "pids"]
     for i in emptytxts:
         if not os.path.exists(f"{config['list_path']}/{i}"):
             open(f"{config['list_path']}/{i}", "w+")

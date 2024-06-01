@@ -642,7 +642,6 @@ def stat(): # Estatisticas do subreddit
     reddit.validate_on_submit = True
     while True:
         try:
-            time.sleep(config["sleep_time"]["stat"])
             add = False
             subr = reddit.subreddit(config["subreddit"])
 
@@ -664,6 +663,7 @@ def stat(): # Estatisticas do subreddit
             cursor.execute(f"INSERT INTO statistics (`id`, `owner`, `datetime`, `members`, `growt`, `growt_percent`) VALUES ({last_id+1}, {apid}, '{sql_time}', {subs}, {growt}, {growt_perc})")
 
             sql.commit()
+            time.sleep(config["sleep_time"]["stat"])
            # if add:
             #    reddit.subreddit(f"{config['log_subreddit']}").submit(title=f"{date} {int(hour)-1 if int(hour) >= 1 else '23'}-{ctime} - GROWT", selftext=f"{subs} (CRESCIMENTO: {growt})")
             
@@ -700,6 +700,11 @@ if __name__ == '__main__':
         print(f"Iniciado processo com o PID {i.pid} para a função {funcs[index].__name__}: {(func_end - func_start)*1000:.0f} ms") 
 
     # Termino do processo de inicializaçãp.
+
+    pids_str = [str(x) for x in pids]
+    open(f'{config["list_path"]}/pids', "w+").write("\n".join(pids_str))
+    open(f'{config["list_path"]}/main', "w+").write(str(os.getpid()))
+
     end2 = datetime.datetime.now().timestamp()
 
     total_main = ((end2-start2) + (end1-start1)) * 1000 # Formula feita para ignorar o tempo de input da api do mysql
@@ -786,11 +791,19 @@ if __name__ == '__main__':
                         try:
                             eval(input("INJECT => "))
                         except SyntaxError:
+                            print("Saindo!")
                             break
                         except Exception as e:
                             print(traceback.format_exc())
                 else:
                     print("Não é possível usar esse comando se 'injectable' for False.")
+            elif inp[0] == "SWITCH":
+                if len(inp) > 1:
+                    try:
+                        config["debug"][inp[1].lower()] = not config["debug"][inp[1].lower] 
+                        print("Alterado valor temporariamente.")
+                    except KeyError:
+                        print("Erro! chave não existnte.")
             else:
                 print(f"O comando {inp[0]} não é válido.")
 
