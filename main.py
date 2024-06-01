@@ -15,10 +15,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-# Timestamp do inicio do programa
-import datetime
-start = datetime.datetime.now().timestamp()
 
+import datetime
 import praw
 import json
 import tools
@@ -30,11 +28,10 @@ import random
 import os
 import psutil
 import readline
-import csv
 import mysql.connector
-
-
 import preparation as prep
+
+start = datetime.datetime.now().timestamp()
 
 # Timestamp do inicio do programa
 start1 = datetime.datetime.now().timestamp()
@@ -44,10 +41,10 @@ start1 = datetime.datetime.now().timestamp()
 
 config_path = open("./config_path.txt").readlines()[0]
 
-config = json.load(open(f'{config_path}/config.json', 'r')) # Configurações do bot
+config = json.load(open(f'{config_path}/config.json', 'r'))  # Configurações do bot
 #api = json.load(open(f"{config['config']}/api.json", "r")) # Configurações da API
 #splashes = json.load(open(f"{config['config']}/splashes.json", 'r')) # Mensagens localizadas no final do comentário do bot
-reasons = json.load(open(f"{config['config']}/reasons.json", "r")) # Motivos para punição automatizada
+reasons = json.load(open(f"{config['config']}/reasons.json", "r"))  # Motivos para punição automatizada
 boot = True
 
 print(f"Bem-vindo!")
@@ -67,7 +64,7 @@ except mysql.connector.ProgrammingError:
 start2 = datetime.datetime.now().timestamp()
 
 apid = int(config['db']['api_id'])
-    
+
 cursor = sql.cursor()
 
 cursor.execute(f"SELECT * FROM users WHERE id={apid};")
@@ -102,7 +99,7 @@ def runtime():
     botxt += votxt[0] + "**Votos especiais**\n\n" + votxt[1] + "\n\n"
 
     reddit.validate_on_submit = True
-    
+
     # Loop principal da função 
     while True:
         try:
@@ -110,9 +107,10 @@ def runtime():
             # Texto placeholder para a parte que diz o veredito atual
             ftxt = f"# Veredito atual:" \
                    f" Não processado ainda\n\n"
-            subcount = 0 # Número da submissão atual
-            submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"])) # Pega X submissões do feed do subreddit
-            atime = datetime.datetime.now().timestamp() # Essa parte serve para o cálculo do tempo que roddou a função
+            subcount = 0  # Número da submissão atual
+            submissons = reddit.subreddit(config["subreddit"]).new(
+                limit=int(config["submissions"]))  # Pega X submissões do feed do subreddit
+            atime = datetime.datetime.now().timestamp()  # Essa parte serve para o cálculo do tempo que roddou a função
 
             # Loop para iterar nas submissões
             for submission in submissons:
@@ -122,23 +120,24 @@ def runtime():
                 adds = []
 
                 subcount += 1
-                timestmp = datetime.datetime.now().timestamp() - config["break_time"] # Calcula o quaõ velho o post tem que ser para ser ignorado
+                timestmp = datetime.datetime.now().timestamp() - config[
+                    "break_time"]  # Calcula o quaõ velho o post tem que ser para ser ignorado
 
                 if submission.created_utc <= timestmp:
-                    break # quebra o loop se o tempo de agora - x dias for maior que o tempo que criado.
+                    break  # quebra o loop se o tempo de agora - x dias for maior que o tempo que criado.
                 # Pegar os splashes
                 cursor.execute(f"SELECT text FROM splashes WHERE owner={apid};")
 
                 splashes = []
                 for x in cursor.fetchall():
-                    splashes.append(x[0]) 
-           
-                joke = random.choice(splashes) # Escolhe qual a mensagem vai ficar no final
+                    splashes.append(x[0])
+
+                joke = random.choice(splashes)  # Escolhe qual a mensagem vai ficar no final
                 etxt = f"""
                                 
 *{joke}* 
 *{config['info']['name']} {config['info']['version']} - by [{config['info']['creator']}](https://www.reddit.com/u/{config['info']['creator']}).*
-*Veja meu código fonte: [Código fonte]({config['info']['github']}).*""" # A parte final do comentário
+*Veja meu código fonte: [Código fonte]({config['info']['github']}).*"""  # A parte final do comentário
 
                 # Gera o dicionário que contêm os votos
                 assholecount = {}
@@ -166,20 +165,23 @@ def runtime():
 
                 # Salva as alterações no arquivo de corpos
                 open(f"{config['list_path']}/bodies/bodies.json", "w+").write(bodies_json)
-                if submission.id not in sublist: # Se a submissão não tiver nos ids
-                    submission.reply(body="OP, por favor responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento.\n\n>!NOEDIT!<")
-                    botcomment = submission.reply(body=ftxt + botxt + etxt) # Responde a publicação com a soma das partes como placeholder
+                if submission.id not in sublist:  # Se a submissão não tiver nos ids
+                    submission.reply(
+                        body="OP, por favor responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento.\n\n>!NOEDIT!<")
+                    botcomment = submission.reply(
+                        body=ftxt + botxt + etxt)  # Responde a publicação com a soma das partes como placeholder
                     tools.logger(0, sub_id=submission.id)
-                    botcomment.mod.distinguish(sticky=True) # Marca o comentário como MOD e o fixa
-                    botcomment.mod.approve() # Aprova o comentário
-                    sublist.append(submission.id) # Coloca o post na lista de ids
-                    submission.flair.select(config["flairs"]["NOT_CLASSIFIED"][0]) # Seleciona a flair de não classificado aind
+                    botcomment.mod.distinguish(sticky=True)  # Marca o comentário como MOD e o fixa
+                    botcomment.mod.approve()  # Aprova o comentário
+                    sublist.append(submission.id)  # Coloca o post na lista de ids
+                    submission.flair.select(
+                        config["flairs"]["NOT_CLASSIFIED"][0])  # Seleciona a flair de não classificado aind
                     with open(f"{config['list_path']}/idlist", 'a') as f:
-                        f.write(submission.id + '\n') # Grava a nova lista de ids
-                submission.comment_sort = 'new' # Filtra os comentários por novos
+                        f.write(submission.id + '\n')  # Grava a nova lista de ids
+                submission.comment_sort = 'new'  # Filtra os comentários por novos
                 submission.comments.replace_more(limit=None)
-                comments = submission.comments.list() # E por fim pegas os comentários para calcular o julgamento
-                
+                comments = submission.comments.list()  # E por fim pegas os comentários para calcular o julgamento
+
                 # Variáveis para o cálculo
                 highest = 0
                 key = ''
@@ -196,15 +198,15 @@ def runtime():
                     num_coms += 1
 
                 # Loop para iterar nos comentários
-                invalid = 0 # Comentários inválidos
+                invalid = 0  # Comentários inválidos
                 for comment in comments:
                     try:
                         if comment.author != api["username"] and comment.author not in users \
-                                and comment.author != submission.author: # Se o votante não for o autor, não tiver sido contado já ou não for o bot...
+                                and comment.author != submission.author:  # Se o votante não for o autor, não tiver sido contado já ou não for o bot...
                             # Vê as respostas dos comentários para achar o comentário de ignorar
 
-                            if True: # Removendo a censura
-                                comment_body = comment.body.split(' ') # O corpo do comentário é divido em palavras
+                            if True:  # Removendo a censura
+                                comment_body = comment.body.split(' ')  # O corpo do comentário é divido em palavras
                                 indx = -1
                                 # Aparentemente esse código não era tão inutil
                                 for sub in comment_body:
@@ -215,20 +217,20 @@ def runtime():
                                         comment_body.insert(indx + 1, sub[1])
                                     except IndexError:
                                         pass
-                                rate = [] # Lista de palvras strippadas
+                                rate = []  # Lista de palvras strippadas
                                 # Para palavra no comentário...
                                 for sub in comment_body:
-                                    sub = sub.strip() # Méteodo strip na palavra....
+                                    sub = sub.strip()  # Méteodo strip na palavra....
                                     replaces = config["replace_list"]
                                     for c in replaces:
-                                        sub = sub.replace(c, "") # Remove caractéres especiais
+                                        sub = sub.replace(c, "")  # Remove caractéres especiais
 
                                     rate.append(sub)
 
                                 indx = -1
-                                for w in rate: # Para w na lista de palvras estripadas...
+                                for w in rate:  # Para w na lista de palvras estripadas...
                                     indx += 1
-                                    rate[indx] = w.upper() # Coloca a palavra EM MAIUSCULO
+                                    rate[indx] = w.upper()  # Coloca a palavra EM MAIUSCULO
 
                                 # Da lista de votos possíveis, se um deles tiver ali, adiciona mais um no número de votos
                                 doesItCount = False
@@ -245,12 +247,12 @@ def runtime():
                                 total = 0
                                 # Para k e v na lista de votos
                                 for k, v in assholecount.items():
-                                    total += v # Adiciona mais um no total
-                                    if v >= highest: # E vê qual o maior
+                                    total += v  # Adiciona mais um no total
+                                    if v >= highest:  # E vê qual o maior
                                         highest = v
                                         key = k
                                 try:
-                                    percent = highest / total # Caclula qual a poercentagem
+                                    percent = highest / total  # Caclula qual a poercentagem
                                 except ZeroDivisionError:
                                     percent = 1.00
 
@@ -258,18 +260,18 @@ def runtime():
                                 ind = rates.index(key)
                                 judgment = judges[ind]
 
-                                if percent < 0.50: # Se a porcentagem for menor quee 50%, nenhum teve a maioria
+                                if percent < 0.50:  # Se a porcentagem for menor quee 50%, nenhum teve a maioria
                                     judgment = "Nenhum voto atingiu a maioria"
                                     votetxt = f"{total} votos contados ao total"
                                 else:
-                                    votetxt = f"{percent * 100:.2f}% de {total} votos" # Se não, atingiu
+                                    votetxt = f"{percent * 100:.2f}% de {total} votos"  # Se não, atingiu
 
                                 # Agora, se o total for igual a zero não foi avaliado ainda =)
                                 if total == 0:
                                     judgment = "Não avaliado"
                                     votetxt = f"{total} votos contados ao total"
                                 ftxt = f"### " \
-                                        f"{judgment} ({votetxt})"
+                                       f"{judgment} ({votetxt})"
                                 users.append(comment.author)
                         else:
                             invalid += 1
@@ -292,9 +294,9 @@ Voto | Quantidade | %
 :--:|:--:|:--:
 """
 
-                assholes = 0 # Número de votos babacas
-                commoners = 0 # Número de votos "comuns"
-                total_ac = 0 # Total de votos babacas e comuns
+                assholes = 0  # Número de votos babacas
+                commoners = 0  # Número de votos "comuns"
+                total_ac = 0  # Total de votos babacas e comuns
                 # Calcula os babacas e põe informações na tabela
                 for k, v in assholecount.items():
                     votxt += f"{k} | {v} | {percents[k]}%\n"
@@ -309,30 +311,29 @@ Voto | Quantidade | %
                 if total_ac >= 1:
                     for k, v in assholecount.items():
                         if k in config["asshole"]:
-                            assholes += (v/total_ac)*100
+                            assholes += (v / total_ac) * 100
                         elif k in config["not_asshole"]:
-                            commoners += (v/total_ac)*100
+                            commoners += (v / total_ac) * 100
 
-                points = int(((assholes - commoners) + 100) * 5) # Por fim, calculado os pontos de babaquice
-
+                points = int(((assholes - commoners) + 100) * 5)  # Por fim, calculado os pontos de babaquice
 
                 # Adiciona no corpo do texto
-                ftxt += f"\n# Nível de babaquice: {points/10:.2f}%"
+                ftxt += f"\n# Nível de babaquice: {points / 10:.2f}%"
                 timeval = "\n\nÚltima análise feita em: " \
-                   f"{datetime.datetime.now().strftime('%d/%m/%Y às %H:%M')}\n\n " # Última analise...
-                etxt = votxt + timeval + etxt # Junta várias partes do corpo do comentário
+                          f"{datetime.datetime.now().strftime('%d/%m/%Y às %H:%M')}\n\n "  # Última analise...
+                etxt = votxt + timeval + etxt  # Junta várias partes do corpo do comentário
                 if percent >= 0.5 and total > 0:
-                    submission.flair.select(config["flairs"][key][0]) # Seleciona a flair se tiver uma maioria.
-                    if key in ["FANFIC", "OT"]: # Se o voto mais top tiver em um desses dois ai...
-                        removes = open(f"{config['list_path']}/rid", "r").readlines() # Checa a lista de remoções
+                    submission.flair.select(config["flairs"][key][0])  # Seleciona a flair se tiver uma maioria.
+                    if key in ["FANFIC", "OT"]:  # Se o voto mais top tiver em um desses dois ai...
+                        removes = open(f"{config['list_path']}/rid", "r").readlines()  # Checa a lista de remoções
 
                         indx = -1
                         for sub in removes:
                             indx += 1
                             removes[indx] = sub.strip()
 
-                        if submission.id not in removes and total > 1: # Se a submissão não tiver na lista de remoção e o total for maior que 1 (a lista ainda nn foi gravada)
-                            
+                        if submission.id not in removes and total > 1:  # Se a submissão não tiver na lista de remoção e o total for maior que 1 (a lista ainda nn foi gravada)
+
                             # Remove a submissão e adiciona lista de remoções
                             reason = reasons["FAKE_OT"]
                             submission.mod.remove(mod_note=f"{reason['note']}", spam=False)
@@ -342,29 +343,29 @@ Voto | Quantidade | %
                 # Se a porcaentagem está fora da média, seleciona a flair de fora da média
                 elif percent < 0.5 and total > 0:
                     submission.flair.select(config["flairs"]["INCONCLUSIVE"][0])
-                elif total == 0: # Se o total for exatamente zero, a de não disponível
+                elif total == 0:  # Se o total for exatamente zero, a de não disponível
                     submission.flair.select(config["flairs"]["NOT_AVALIABLE"][0])
                 flairchanges += f"\n* Flair de https://www.reddit.com/{submission.id} é '{judgment}'"
                 tools.logger(2, ex=f"Flair editada em {submission.id}")
 
                 notInBody = False
-                if submission.id not in bdlist: # Se a bumissão não tiver na lista de corpos...
+                if submission.id not in bdlist:  # Se a bumissão não tiver na lista de corpos...
                     notInBody = True
                     open(f"{config['list_path']}/bodies/bdlist", "a").write(f"{submission.id}\n")
 
-                body_obj = bodylist[f"{submission.id}"].split("\n\n") # Pega o corpo do comentário
+                body_obj = bodylist[f"{submission.id}"].split("\n\n")  # Pega o corpo do comentário
                 index = 0
                 for line in body_obj:
-                    body_obj[index] = ">" + line + "\n\n" # Formata certinho
+                    body_obj[index] = ">" + line + "\n\n"  # Formata certinho
                     index += 1
 
                 body_obj = ''.join(body_obj)
-                bodytxt = f"\n\n# Texto original\n\n{body_obj}\n\n>!NOEDIT!<" # Adiciona o header
+                bodytxt = f"\n\n# Texto original\n\n{body_obj}\n\n>!NOEDIT!<"  # Adiciona o header
 
                 # Adiciona a justificativa no corpo do bot
                 ebotxt = botxt
                 ebotxt += f"\n\nDe acordo com u/{submission.author}, o motivo dele se achar ou não um babaca é esse:\n\n"
-                for _ in range(0, 3): # Tentar 3 vezes para caso de erro
+                for _ in range(0, 3):  # Tentar 3 vezes para caso de erro
                     time.sleep(config["sleep_time"]["main"])
                     try:
                         reasoning = json.load(open(f"{config['list_path']}/reasoning/reasonings.json", "r"))
@@ -383,22 +384,23 @@ Voto | Quantidade | %
                 for com in comments:
                     if com.author == f"{api['username']}":
                         bd = com.body.split("\n")
-                        fullbody = ftxt + ebotxt + etxt # Cola as partes do comentário
-                        if ">!NOEDIT!<" not in bd: # Se não tiver ">!NOEDIT!<"
+                        fullbody = ftxt + ebotxt + etxt  # Cola as partes do comentário
+                        if ">!NOEDIT!<" not in bd:  # Se não tiver ">!NOEDIT!<"
                             if notInBody:
                                 com.reply(body=bodytxt)  # Se ainda não tiver o texto original, o comenta
                             com.edit(
-                                body=fullbody) # Edita o comentário do placar
+                                body=fullbody)  # Edita o comentário do placar
                             tools.logger(1, sub_id=submission.id)
                             edits += f"\n* Comentário do bot editado em https://www.reddit.com/{submission.id}\n"
                 ftxt = f"# Veredito atual:" \
-                        f" Não disponível \n\nÚltima atualização feita em: " \
-                        f"{datetime.datetime.now().strftime('%d/%m/%Y às %H:%M')}\n\n "
+                       f" Não disponível \n\nÚltima atualização feita em: " \
+                       f"{datetime.datetime.now().strftime('%d/%m/%Y às %H:%M')}\n\n "
 
             btime = datetime.datetime.now().timestamp()
-            tools.log_runtime(runtime, atime, btime) # Coloca o runtime total da função
+            tools.log_runtime(runtime, atime, btime)  # Coloca o runtime total da função
         except Exception as e:
             tools.logger(5, ex=traceback.format_exc())
+
 
 # Função de backup
 def backup():
@@ -408,12 +410,13 @@ def backup():
         try:
             current_time = datetime.datetime.now().strftime('%H:%M')
 
-             # Só faz backup em determinados temopos
+            # Só faz backup em determinados temopos
             if current_time in config["backup"]["time"] and not already_run:
-                folder = f"{config['backup']['path']}/{datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')}" # Pega a pasta para salvar o backup
-                src_list = [".", config_path, config["list_path"]] # O sources
+                folder = f"{config['backup']['path']}/{datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')}"  # Pega a pasta para salvar o backup
+                src_list = [".", config_path, config["list_path"]]  # O sources
                 for src in src_list:
-                    shutil.copytree(src, f"{folder}/{src.split('/')[-1] if src != '.' else 'Main'}", ignore=shutil.ignore_patterns("venv", "__", "pyenv")) # Copia a árvore de pastas
+                    shutil.copytree(src, f"{folder}/{src.split('/')[-1] if src != '.' else 'Main'}",
+                                    ignore=shutil.ignore_patterns("venv", "__", "pyenv"))  # Copia a árvore de pastas
                 #tools.logger(2, bprint=False, ex="Backup realizado")
                 already_run = True
             else:
@@ -422,7 +425,7 @@ def backup():
             print(traceback.format_exc())
         time.sleep(config["sleep_time"]["backup"])
         btime = datetime.datetime.now().timestamp()
-        
+
 
 # Limpador de logs
 def clearlog():
@@ -441,27 +444,27 @@ def textwall():
         atime = datetime.datetime.now().timestamp()
         try:
             subcount = 0
-            submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"])) # Pega subs
+            submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
             for submission in submissons:
                 time.sleep(config["sleep_time"]["textwall"])
                 subcount += 1
                 subid = submission.id
 
-                sublist = tools.getfiletext(open(f"{config['list_path']}/rid", "r")) # Pega a lista de remoções
+                sublist = tools.getfiletext(open(f"{config['list_path']}/rid", "r"))  # Pega a lista de remoções
                 indx = -1
 
                 for i in sublist:
                     indx += 1
                     sublist[indx] = i.strip()
 
-                if subid not in sublist: # Se o submissão não tiver na lista de subs...
+                if subid not in sublist:  # Se o submissão não tiver na lista de subs...
                     try:
-                        body = submission.selftext # Pega o corpo do texto
+                        body = submission.selftext  # Pega o corpo do texto
                     except:
                         body = ""
-                    
+
                     # Coloca os valores padrões de parágrafos e frases para 1...
-                    paragraphs = 1 
+                    paragraphs = 1
                     sentences = 1
 
                     # Determinar quantos parágrafos tem o texto
@@ -471,12 +474,12 @@ def textwall():
                     # Número de caracteres
                     chars = 0
 
-                    if body != "": # Se o corpo for diferente de ""
+                    if body != "":  # Se o corpo for diferente de ""
                         for i in body:
                             index += 1
                             chars += 1
                             try:
-                                if i == "\n" and body[index+1] == "\n":
+                                if i == "\n" and body[index + 1] == "\n":
                                     paragraphs += 1
                                     sentences += 1
                                     paragraph_cond = True
@@ -500,7 +503,8 @@ def textwall():
                             len(body) < config["text_filter"]["min_body"]):
                         reason = reasons['TEXTWALL']
                         submission.mod.remove(mod_note=reason['note'], spam=False)
-                        submission.reply(body=reason['body']+f"\n\nParágrafos: {paragraphs}\n\nFrases: {sentences}\n\nCaractéres: {chars}")
+                        submission.reply(body=reason[
+                                                  'body'] + f"\n\nParágrafos: {paragraphs}\n\nFrases: {sentences}\n\nCaractéres: {chars}")
                         tools.logger(tp=4, sub_id=subid, reason="Parede de texto")
 
                         open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
@@ -533,14 +537,14 @@ def justification():
                 submission.comment_sort = 'new'  # Filtra os comentários por novos
                 submission.comments.replace_more(limit=None)
                 comments = submission.comments.list()
-                didOPans = False # se o op respondeu
+                didOPans = False  # se o op respondeu
                 breakparent = False
 
                 for com in comments:
-                    if com.author == api["username"]: # Se o autor do comentário for o bot.
+                    if com.author == api["username"]:  # Se o autor do comentário for o bot.
                         # Verificar se o autor do post respondeu
                         comreplies = com.replies
-                        for reply in comreplies: # Para cada resposta do comentário
+                        for reply in comreplies:  # Para cada resposta do comentário
                             if reply.author == submission.author:
                                 # Checa se não tem um caractere blacklistado, para evitar abusos
                                 blacklist = []
@@ -555,7 +559,7 @@ def justification():
                                         break
                                 if count:
                                     didOPans = True
-                                    reason = reply.body # O motivo é o corpo da resposta
+                                    reason = reply.body  # O motivo é o corpo da resposta
                                     breakparent = True
                                     break
 
@@ -566,12 +570,12 @@ def justification():
                 igl = tools.getfiletext(open(f"{config['list_path']}/ignore_list", "r"))
 
                 if not didOPans and subid not in igl:
-                    rid = tools.getfiletext(open(f"{config['list_path']}/rid", "r")) # Abrir a lista de remoções
+                    rid = tools.getfiletext(open(f"{config['list_path']}/rid", "r"))  # Abrir a lista de remoções
                     # Se o timestamp de criação - timestamp de agora for maior que 1 hora...
                     if now - submission.created_utc >= 3600:
                         if subid not in rid:
                             removal = reasons['NO_REASON']
-                            if not boot: # Se não tiver aado de inicialzar..
+                            if not boot:  # Se não tiver aado de inicialzar..
                                 submission.mod.remove(mod_note=removal['note'], spam=False)
                                 submission.reply(body=removal['body'])
                             tools.logger(tp=4, sub_id=subid, reason="Sem justificativa")
@@ -600,18 +604,18 @@ def filter():
         atime = datetime.datetime.now().timestamp()
         try:
             subcount = 0
-            submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"])) # Pega subs
-            
+            submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
+
             for submission in submissons:
-                keywords = tools.getfiletext(open(f"{config['list_path']}/keywords.txt", "r")) # Palavras de filtro
+                keywords = tools.getfiletext(open(f"{config['list_path']}/keywords.txt", "r"))  # Palavras de filtro
 
                 time.sleep(config["sleep_time"]["filter_sub"])
                 subcount += 1
 
-                sublist = tools.getfiletext(open(f"{config['list_path']}/cid", "r")) # Pega a lista de remoções
+                sublist = tools.getfiletext(open(f"{config['list_path']}/cid", "r"))  # Pega a lista de remoções
                 indx = -1
 
-                submission.comment_sort = 'new' # Filtra os comentários por novos
+                submission.comment_sort = 'new'  # Filtra os comentários por novos
                 submission.comments.replace_more(limit=None)
                 comments = submission.comments.list()
 
@@ -638,7 +642,7 @@ def filter():
             tools.logger(tp=5, ex=traceback.format_exc())
 
 
-def stat(): # Estatisticas do subreddit
+def stat():  # Estatisticas do subreddit
     reddit.validate_on_submit = True
     while True:
         try:
@@ -653,21 +657,22 @@ def stat(): # Estatisticas do subreddit
             sql_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             subs = subr.subscribers
-            
+
             cursor.execute(f"SELECT members FROM statistics WHERE id={last_id}")
 
             last_members = int(cursor.fetchall()[0][0])
-            growt = subs-last_members
-            growt_perc = ((subs-last_members)/last_members)*100
+            growt = subs - last_members
+            growt_perc = ((subs - last_members) / last_members) * 100
 
-            cursor.execute(f"INSERT INTO statistics (`id`, `owner`, `datetime`, `members`, `growt`, `growt_percent`) VALUES ({last_id+1}, {apid}, '{sql_time}', {subs}, {growt}, {growt_perc})")
+            cursor.execute(
+                f"INSERT INTO statistics (`id`, `owner`, `datetime`, `members`, `growt`, `growt_percent`) VALUES ({last_id + 1}, {apid}, '{sql_time}', {subs}, {growt}, {growt_perc})")
 
             sql.commit()
             time.sleep(config["sleep_time"]["stat"])
-           # if add:
-            #    reddit.subreddit(f"{config['log_subreddit']}").submit(title=f"{date} {int(hour)-1 if int(hour) >= 1 else '23'}-{ctime} - GROWT", selftext=f"{subs} (CRESCIMENTO: {growt})")
-            
-            #tools.log_runtime(stat, atime, btime)
+        # if add:
+        #    reddit.subreddit(f"{config['log_subreddit']}").submit(title=f"{date} {int(hour)-1 if int(hour) >= 1 else '23'}-{ctime} - GROWT", selftext=f"{subs} (CRESCIMENTO: {growt})")
+
+        #tools.log_runtime(stat, atime, btime)
 
         except Exception:
             tools.logger(tp=5, ex=traceback.format_exc())
@@ -680,26 +685,27 @@ if __name__ == '__main__':
 
     # Carrega as funções
     funcs = [runtime, backup, clearlog, textwall, justification, filter, stat]
-    processes = [multiprocessing.Process(target=x, args=[], name=x.__name__) for x in funcs] # Inicializa os processos
+    processes = [multiprocessing.Process(target=x, args=[], name=x.__name__) for x in funcs]  # Inicializa os processos
 
     pids = [os.getpid()]
 
     index = -1
     # E os bota para rodar de segundo plano
-    func_total = 0 # total de milisegundos na inicialização da função
+    func_total = 0  # total de milisegundos na inicialização da função
     for i in processes:
-        func_start = datetime.datetime.now().timestamp() #ms da função
-        
+        func_start = datetime.datetime.now().timestamp()  #ms da função
+
         index += 1
         i.start()
-        pids.append(i.pid) # Salva os pids
-        
-        func_end = datetime.datetime.now().timestamp() # ms da função
-        func_total += (func_end - func_start)*1000
+        pids.append(i.pid)  # Salva os pids
 
-        print(f"Iniciado processo com o PID {i.pid} para a função {funcs[index].__name__}: {(func_end - func_start)*1000:.0f} ms") 
+        func_end = datetime.datetime.now().timestamp()  # ms da função
+        func_total += (func_end - func_start) * 1000
 
-    # Termino do processo de inicializaçãp.
+        print(
+            f"Iniciado processo com o PID {i.pid} para a função {funcs[index].__name__}: {(func_end - func_start) * 1000:.0f} ms")
+
+        # Termino do processo de inicializaçãp.
 
     pids_str = [str(x) for x in pids]
     open(f'{config["list_path"]}/pids', "w+").write("\n".join(pids_str))
@@ -707,30 +713,32 @@ if __name__ == '__main__':
 
     end2 = datetime.datetime.now().timestamp()
 
-    total_main = ((end2-start2) + (end1-start1)) * 1000 # Formula feita para ignorar o tempo de input da api do mysql
-    
-    print(f"main: {total_main:.0f} ms. ({total_main - func_total:.0f} ms de inicialização e {func_total:.0f} ms de preparação)")
-    
+    total_main = ((end2 - start2) + (
+                end1 - start1)) * 1000  # Formula feita para ignorar o tempo de input da api do mysql
+
+    print(
+        f"main: {total_main:.0f} ms. ({total_main - func_total:.0f} ms de inicialização e {func_total:.0f} ms de preparação)")
+
     # Loop para os comandos (primeiro plano)
     while True:
         inp = input("=> ").upper().split(" ")
         if len(inp) >= 1:
-            if inp[0] == "R": # Se o input do usuário for R, vai simplesmente reccarregar os valores. (Não testado)
+            if inp[0] == "R":  # Se o input do usuário for R, vai simplesmente reccarregar os valores. (Não testado)
                 config = json.load(open('config.json', 'r'))
                 sql.commit()
                 print("Valores recarregados na memória.")
-            elif inp[0] == "E": # E termina o programa.
+            elif inp[0] == "E":  # E termina o programa.
                 for i in processes:
                     i.terminate()
 
                 break
-            elif inp[0] == "RESTART": # Reinicia o programa
+            elif inp[0] == "RESTART":  # Reinicia o programa
                 for i in processes:
                     i.terminate()
 
                 os.system(f"{config['python']} ./main.py")
                 break
-            elif inp[0] == "MEMORY": # Calcula a memória utilizada pelos processos
+            elif inp[0] == "MEMORY":  # Calcula a memória utilizada pelos processos
                 while True:
                     try:
                         mem = 0
@@ -748,12 +756,13 @@ if __name__ == '__main__':
                                 mem += mem_qnt
                                 cpu = process.cpu_percent()
                                 cputotal += cpu
-                                
-                                print(f"{funcs[index].__name__ if r > 0 else 'main'} ({process.pid}): {mem_qnt:.0f} mb, {cpu:.2f}% CPU")
+
+                                print(
+                                    f"{funcs[index].__name__ if r > 0 else 'main'} ({process.pid}): {mem_qnt:.0f} mb, {cpu:.2f}% CPU")
 
                                 if r > 0:
                                     index += 1
-                                
+
                                 r += 1
 
                         print(f"Total: {mem:.0f} mb ({perc:.2f}%), {cputotal:.2f}% CPU")
@@ -769,7 +778,7 @@ if __name__ == '__main__':
             elif inp[0] == "LOGSTREAM":
                 while True:
                     user = input("")
-                    tools.clear_console() 
+                    tools.clear_console()
                     if user == "":
                         print(open(f"{config['list_path']}/log", "r").readlines()[-1])
                     else:
@@ -778,9 +787,10 @@ if __name__ == '__main__':
                 sql.commit()
                 cursor.execute(f"SELECT id FROM splashes WHERE owner={apid}")
                 lastid = int(cursor.fetchall()[-1][0])
-                
+
                 try:
-                    cursor.execute(f"INSERT INTO splashes (id, owner, text) VALUES ({lastid+1}, {apid}, {str(input('Texto: '))})")
+                    cursor.execute(
+                        f"INSERT INTO splashes (id, owner, text) VALUES ({lastid + 1}, {apid}, {str(input('Texto: '))})")
                 except Exception as e:
                     print(traceback.format_exc())
 
@@ -800,10 +810,9 @@ if __name__ == '__main__':
             elif inp[0] == "SWITCH":
                 if len(inp) > 1:
                     try:
-                        config["debug"][inp[1].lower()] = not config["debug"][inp[1].lower] 
+                        config["debug"][inp[1].lower()] = not config["debug"][inp[1].lower]
                         print("Alterado valor temporariamente.")
                     except KeyError:
                         print("Erro! chave não existnte.")
             else:
                 print(f"O comando {inp[0]} não é válido.")
-

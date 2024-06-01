@@ -69,7 +69,6 @@ def main(args: list, config: dict) -> int:
         return -1
 
 
-
 if __name__ == '__main__':
     config = json.load(open(f"{open('./config_path.txt').readlines()[0]}/config.json", "r"))
     code = main(sys.argv, config)
