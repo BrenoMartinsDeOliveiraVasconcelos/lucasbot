@@ -22,6 +22,7 @@
     "submissions": "NUMERO DE POSTS REQUISITADOS NA API DO praw",
     "subreddit": "SUBREDDIT",
     "log_subreddit": "SUBREDDIT DE LOG",
+    "min_before_lock": 10,
     "backup": {
         "path": "PASTA ONDE FICA OS BACKUPS",
         "time": ["HH:MM"]
@@ -38,6 +39,7 @@
         "textwall": 1,
         "justification": 2,
         "filter_sub": 0,
+        "lock_com": 0,
         "filter_com": 0.25,
         "backup": 60,
         "stat": 3600 

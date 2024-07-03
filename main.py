@@ -30,6 +30,15 @@ import psutil
 import readline
 import mysql.connector
 import preparation as prep
+import argparse
+
+parser = argparse.ArgumentParser(prog='lucasbot', description='Bot do reddit.')
+
+parser.add_argument('-p') # Senha do banco de dados
+args = parser.parse_args()
+
+
+
 
 start = datetime.datetime.now().timestamp()
 
@@ -55,7 +64,7 @@ try:
     sql = mysql.connector.connect(
         host=config["db"]["host"],
         user=config["db"]["user"],
-        password=input(f"Senha do banco de dados: "),
+        password=args.p,
         database=config["db"]["database"]
     )
 except mysql.connector.ProgrammingError:
@@ -167,7 +176,7 @@ def runtime():
                 open(f"{config['list_path']}/bodies/bodies.json", "w+").write(bodies_json)
                 if submission.id not in sublist:  # Se a submissão não tiver nos ids
                     submission.reply(
-                        body="OP, por favor responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento.\n\n>!NOEDIT!<")
+                        body="OP, por favor responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento. Caso você já tenha entendido seu julgamento, responda com 'Entendido' para fechar os comentários.\n\n>!NOEDIT!<")
                     botcomment = submission.reply(
                         body=ftxt + botxt + etxt)  # Responde a publicação com a soma das partes como placeholder
                     tools.logger(0, sub_id=submission.id)
@@ -677,6 +686,47 @@ def stat():  # Estatisticas do subreddit
         except Exception:
             tools.logger(tp=5, ex=traceback.format_exc())
 
+    
+def lock_coms():
+    reddit.validate_on_submit = True
+    while True:
+        atime = datetime.datetime.now().timestamp()
+        try:
+            subcount = 0
+            submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
+
+            for submission in submissons:
+
+                time.sleep(config["sleep_time"]["lock_com"])
+                subcount += 1
+
+                submission.comment_sort = 'new'  # Filtra os comentários por novos
+                submission.comments.replace_more(limit=None)
+                comments = submission.comments.list()
+
+                # Iteração pela lista de comentários
+                for com in comments:
+                    time.sleep(config["sleep_time"]["lock_com"])
+                    if com.author == api["username"]:
+                        replies = com.replies
+
+                        for r in replies:
+                            if r.author == submission.author:
+                                body = r.body.replace("\n", "").replace("\n\n", "").strip()
+                                if body == "Entendido":
+                                    if len(comments) > config["min_before_lock"]:
+                                        submission.mod.lock()
+                                        break
+                                    else:
+                                        submission.mod.unlock()
+
+                        open(f"{config['list_path']}/cid", "a").write(f"{com.id}\n")
+
+            btime = datetime.datetime.now().timestamp()
+            tools.log_runtime(lock_coms, atime, btime)
+        except Exception:
+            tools.logger(tp=5, ex=traceback.format_exc())
+
 
 if __name__ == '__main__':
     tools.clear_console()
@@ -684,7 +734,7 @@ if __name__ == '__main__':
     prep.begin(config)
 
     # Carrega as funções
-    funcs = [runtime, backup, clearlog, textwall, justification, filter, stat]
+    funcs = [runtime, backup, clearlog, textwall, justification, filter, stat, lock_coms]
     processes = [multiprocessing.Process(target=x, args=[], name=x.__name__) for x in funcs]  # Inicializa os processos
 
     pids = [os.getpid()]
@@ -713,106 +763,113 @@ if __name__ == '__main__':
 
     end2 = datetime.datetime.now().timestamp()
 
-    total_main = ((end2 - start2) + (
-                end1 - start1)) * 1000  # Formula feita para ignorar o tempo de input da api do mysql
+    sql_connect_time = (start2 - end1) * 1000
+    total_main = (((end2 - start2) + (
+                end1 - start1)) * 1000) + sql_connect_time 
 
     print(
-        f"main: {total_main:.0f} ms. ({total_main - func_total:.0f} ms de inicialização e {func_total:.0f} ms de preparação)")
+        f"main: {total_main:.0f} ms. ({total_main - func_total:.0f} ms de inicialização, {sql_connect_time:.0f} ms de conexão ao mysql e {func_total:.0f} ms de preparação)")
 
     # Loop para os comandos (primeiro plano)
     while True:
-        inp = input("=> ").upper().split(" ")
-        if len(inp) >= 1:
-            if inp[0] == "R":  # Se o input do usuário for R, vai simplesmente reccarregar os valores. (Não testado)
-                config = json.load(open('config.json', 'r'))
-                sql.commit()
-                print("Valores recarregados na memória.")
-            elif inp[0] == "E":  # E termina o programa.
-                for i in processes:
-                    i.terminate()
+        try:
+            # Try para EOF e erros sem tratamento específico
+            inp = input("=> ").upper().split(" ")
+            if len(inp) >= 1:
+                if inp[0] == "R":  # Se o input do usuário for R, vai simplesmente reccarregar os valores. (Não testado)
+                    config = json.load(open('config.json', 'r'))
+                    sql.commit()
+                    print("Valores recarregados na memória.")
+                elif inp[0] == "E":  # E termina o programa.
+                    for i in processes:
+                        i.terminate()
 
-                break
-            elif inp[0] == "RESTART":  # Reinicia o programa
-                for i in processes:
-                    i.terminate()
+                    break
+                elif inp[0] == "RESTART":  # Reinicia o programa
+                    for i in processes:
+                        i.terminate()
 
-                os.system(f"{config['python']} ./main.py")
-                break
-            elif inp[0] == "MEMORY":  # Calcula a memória utilizada pelos processos
-                while True:
-                    try:
-                        mem = 0
-                        perc = 0
-                        index = 0
-                        cputotal = 0
-                        r = 0
-                        all_processes = psutil.process_iter()
-
-                        for process in all_processes:
-                            if process.pid in pids:
-                                perc += process.memory_percent()
-                                memory_info = process.memory_info()
-                                mem_qnt = memory_info.rss / 1024 / 1024
-                                mem += mem_qnt
-                                cpu = process.cpu_percent()
-                                cputotal += cpu
-
-                                print(
-                                    f"{funcs[index].__name__ if r > 0 else 'main'} ({process.pid}): {mem_qnt:.0f} mb, {cpu:.2f}% CPU")
-
-                                if r > 0:
-                                    index += 1
-
-                                r += 1
-
-                        print(f"Total: {mem:.0f} mb ({perc:.2f}%), {cputotal:.2f}% CPU")
-                        uinput = input("")
-
-                        if uinput != "":
-                            break
-                        os.system("clear")
-                    except KeyboardInterrupt:
-                        os.system(f"{config['python']} ./main.py")
-                        break
-
-            elif inp[0] == "LOGSTREAM":
-                while True:
-                    user = input("")
-                    tools.clear_console()
-                    if user == "":
-                        print(open(f"{config['list_path']}/log", "r").readlines()[-1])
-                    else:
-                        break
-            elif inp[0] == "ADDSPLASH":
-                sql.commit()
-                cursor.execute(f"SELECT id FROM splashes WHERE owner={apid}")
-                lastid = int(cursor.fetchall()[-1][0])
-
-                try:
-                    cursor.execute(
-                        f"INSERT INTO splashes (id, owner, text) VALUES ({lastid + 1}, {apid}, {str(input('Texto: '))})")
-                except Exception as e:
-                    print(traceback.format_exc())
-
-                sql.commit()
-            elif inp[0] == "INJECT":
-                if config["debug"]["injectable"]:
+                    os.system(f"{config['python']} ./main.py")
+                    break
+                elif inp[0] == "MEMORY":  # Calcula a memória utilizada pelos processos
                     while True:
                         try:
-                            eval(input("INJECT => "))
-                        except SyntaxError:
-                            print("Saindo!")
+                            mem = 0
+                            perc = 0
+                            index = 0
+                            cputotal = 0
+                            r = 0
+                            all_processes = psutil.process_iter()
+
+                            for process in all_processes:
+                                if process.pid in pids:
+                                    perc += process.memory_percent()
+                                    memory_info = process.memory_info()
+                                    mem_qnt = memory_info.rss / 1024 / 1024
+                                    mem += mem_qnt
+                                    cpu = process.cpu_percent()
+                                    cputotal += cpu
+
+                                    print(
+                                        f"{funcs[index].__name__ if r > 0 else 'main'} ({process.pid}): {mem_qnt:.0f} mb, {cpu:.2f}% CPU")
+
+                                    if r > 0:
+                                        index += 1
+
+                                    r += 1
+
+                            print(f"Total: {mem:.0f} mb ({perc:.2f}%), {cputotal:.2f}% CPU")
+                            uinput = input("")
+
+                            if uinput != "":
+                                break
+                            os.system("clear")
+                        except KeyboardInterrupt:
+                            os.system(f"{config['python']} ./main.py")
                             break
-                        except Exception as e:
-                            print(traceback.format_exc())
-                else:
-                    print("Não é possível usar esse comando se 'injectable' for False.")
-            elif inp[0] == "SWITCH":
-                if len(inp) > 1:
+
+                elif inp[0] == "LOGSTREAM":
+                    while True:
+                        user = input("")
+                        tools.clear_console()
+                        if user == "":
+                            print(open(f"{config['list_path']}/log", "r").readlines()[-1])
+                        else:
+                            break
+                elif inp[0] == "ADDSPLASH":
+                    sql.commit()
+                    cursor.execute(f"SELECT id FROM splashes WHERE owner={apid}")
+                    lastid = int(cursor.fetchall()[-1][0])
+
                     try:
-                        config["debug"][inp[1].lower()] = not config["debug"][inp[1].lower]
-                        print("Alterado valor temporariamente.")
-                    except KeyError:
-                        print("Erro! chave não existnte.")
-            else:
-                print(f"O comando {inp[0]} não é válido.")
+                        cursor.execute(
+                            f"INSERT INTO splashes (id, owner, text) VALUES ({lastid + 1}, {apid}, {str(input('Texto: '))})")
+                    except Exception as e:
+                        print(traceback.format_exc())
+
+                    sql.commit()
+                elif inp[0] == "INJECT":
+                    if config["debug"]["injectable"]:
+                        while True:
+                            try:
+                                eval(input("INJECT => "))
+                            except SyntaxError:
+                                print("Saindo!")
+                                break
+                            except Exception as e:
+                                print(traceback.format_exc())
+                    else:
+                        print("Não é possível usar esse comando se 'injectable' for False.")
+                elif inp[0] == "SWITCH":
+                    if len(inp) > 1:
+                        try:
+                            config["debug"][inp[1].lower()] = not config["debug"][inp[1].lower]
+                            print("Alterado valor temporariamente.")
+                        except KeyError:
+                            print("Erro! chave não existnte.")
+                else:
+                    print(f"O comando {inp[0]} não é válido.")
+        except EOFError:
+            print("Fim do arquivo de input. Encerrando loop de comandos.")
+            break
+        
