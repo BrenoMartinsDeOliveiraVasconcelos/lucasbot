@@ -717,8 +717,6 @@ def lock_coms():
                                     if len(comments) > config["min_before_lock"]:
                                         submission.mod.lock()
                                         break
-                                    else:
-                                        submission.mod.unlock()
 
                         open(f"{config['list_path']}/cid", "a").write(f"{com.id}\n")
 
