@@ -315,6 +315,8 @@ Voto | Quantidade | %
 
                 # Adicionar os comentários ignorados
                 votxt += f"\n\n**Comentários inválidos: {invalid}**\n"
+                if submission.approved:
+                    votxt += "\n*O post foi verificado e aprovado, portanto votos FANFIC e OT são desconsiderados*.\n"
 
                 # Pega a porcentagem de votos babacas e votos não babacas
                 if total_ac >= 1:
@@ -334,21 +336,27 @@ Voto | Quantidade | %
                 if percent >= 0.5 and total > 0:
                     submission.flair.select(config["flairs"][key][0])  # Seleciona a flair se tiver uma maioria.
                     if key in ["FANFIC", "OT"]:  # Se o voto mais top tiver em um desses dois ai...
-                        removes = open(f"{config['list_path']}/rid", "r").readlines()  # Checa a lista de remoções
+                        if not submission.approved:
+                            removes = open(f"{config['list_path']}/rid", "r").readlines()  # Checa a lista de remoções
 
-                        indx = -1
-                        for sub in removes:
-                            indx += 1
-                            removes[indx] = sub.strip()
+                            indx = -1
+                            for sub in removes:
+                                indx += 1
+                                removes[indx] = sub.strip()
 
-                        if submission.id not in removes and total > 1:  # Se a submissão não tiver na lista de remoção e o total for maior que 1 (a lista ainda nn foi gravada)
+                            if submission.id not in removes and total > 3:  # Se a submissão não tiver na lista de remoção e o total for maior que 1 (a lista ainda nn foi gravada)
 
-                            # Remove a submissão e adiciona lista de remoções
-                            reason = reasons["FAKE_OT"]
-                            submission.mod.remove(mod_note=f"{reason['note']}", spam=False)
-                            submission.reply(body=f"{reason['body']}")
-                            tools.logger(tp=4, sub_id=submission.id, reason="VIolação")
-                            open(f"{config['list_path']}/rid", "a").write(f"{submission.id}\n")
+                                # Remove a submissão e adiciona lista de remoções
+                                
+                                reason = reasons["FAKE_OT"]
+                                submission.mod.remove(mod_note=f"{reason['note']}", spam=False)
+                                submission.reply(body=f"{reason['body']}")
+                                tools.logger(tp=4, sub_id=submission.id, reason="VIolação")
+                                open(f"{config['list_path']}/rid", "a").write(f"{submission.id}\n")
+                        else:
+                            submission.flair.select(config["flairs"]["NOT_AVALIABLE"][0])
+                            ftxt = f"### " \
+                                    f"Post marcado como FANFIC/OT mas aprovado pela moderação"
                 # Se a porcaentagem está fora da média, seleciona a flair de fora da média
                 elif percent < 0.5 and total > 0:
                     submission.flair.select(config["flairs"]["INCONCLUSIVE"][0])
@@ -712,8 +720,14 @@ def lock_coms():
 
                         for r in replies:
                             if r.author == submission.author:
-                                body = r.body.replace("\n", "").replace("\n\n", "").strip()
-                                if body == "Entendido":
+                                body = r.body.upper()
+
+                                for rep in config["replace_list"]:
+                                    body = body.replace(rep, " ")
+                                
+                                body = body.split(" ")
+
+                                if "ENTENDIDO" in body:
                                     if len(comments) > config["min_before_lock"]:
                                         submission.mod.lock()
                                         break
@@ -766,7 +780,7 @@ if __name__ == '__main__':
                 end1 - start1)) * 1000) + sql_connect_time 
 
     print(
-        f"main: {total_main:.0f} ms. ({total_main - func_total:.0f} ms de inicialização, {sql_connect_time:.0f} ms de conexão ao mysql e {func_total:.0f} ms de preparação)")
+        f"main: {total_main:.0f} ms. ({total_main - (func_total + sql_connect_time):.0f} ms de inicialização, {sql_connect_time:.0f} ms de conexão ao mysql e {func_total:.0f} ms de preparação)")
 
     # Loop para os comandos (primeiro plano)
     while True:
