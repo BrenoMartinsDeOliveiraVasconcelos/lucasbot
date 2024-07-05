@@ -141,7 +141,7 @@ def runtime():
                 if submission.created_utc <= timestmp:
                     break  # quebra o loop se o tempo de agora - x dias for maior que o tempo que criado.
                 # Pegar os splashes
-                cursor.execute("SELECT text FROM splashes WHERE owner=%s;", apid)
+                cursor.execute(f"SELECT text FROM splashes WHERE owner={apid};")
 
                 splashes = []
                 for x in cursor.fetchall():
@@ -666,11 +666,11 @@ def filter():
 
 
 def stat():  # Estatisticas do subreddit
-    reddit.validate_on_submit = True
     while True:
         try:
             add = False
             subr = reddit.subreddit(config["subreddit"])
+            reddit.validate_on_submit = True
 
             sql.commit()
             cursor.execute("SELECT max(id) FROM statistics")
@@ -681,7 +681,7 @@ def stat():  # Estatisticas do subreddit
 
             subs = subr.subscribers
 
-            cursor.execute(f"SELECT members FROM statistics WHERE id=%s;", last_id)
+            cursor.execute(f"SELECT members FROM statistics WHERE id={last_id};")
 
             last_members = int(cursor.fetchall()[0][0])
             growt = subs - last_members
@@ -856,12 +856,12 @@ if __name__ == '__main__':
                             break
                 elif inp[0] == "ADDSPLASH":
                     sql.commit()
-                    cursor.execute(f"SELECT id FROM splashes WHERE owner=%s;", apid)
+                    cursor.execute(f"SELECT id FROM splashes WHERE owner={apid};")
                     lastid = int(cursor.fetchall()[-1][0])
 
                     try:
                         cursor.execute(
-                            f"INSERT INTO splashes (id, owner, text) VALUES ({lastid + 1}, %s, {str(input('Texto: '))})", apid)
+                            f"INSERT INTO splashes (`id`, `owner`, `text`) VALUES ({lastid + 1}, {apid}, '{str(input('Texto: '))}')")
                     except Exception as e:
                         print(traceback.format_exc())
 
