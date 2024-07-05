@@ -881,7 +881,7 @@ if __name__ == '__main__':
                 elif inp[0] == "SWITCH":
                     if len(inp) > 1:
                         try:
-                            config["debug"][inp[1].lower()] = not config["debug"][inp[1].lower]
+                            config["debug"][inp[1].lower()] = not config["debug"][inp[1].lower()]
                             print("Alterado valor temporariamente.")
                         except KeyError:
                             print("Erro! chave não existnte.")

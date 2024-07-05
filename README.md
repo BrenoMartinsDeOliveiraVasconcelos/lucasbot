@@ -26,4 +26,4 @@ Depois de instalar as bibliotecas necessárias usando `python3 -m pip install -r
 | LOGSTREAM | Mostra o registro do log em tempo real |
 | ADDSPLASH | Adiciona um texto debaixo do indicador de veredito |
 | INJECT | Se injectable em config.json for True, abre um console python da sessão |
-
+| SWITCH <Chave em 'debug'> | Altera temporariamente o valor presente no dicionário 'debug' em config.json |
