@@ -38,8 +38,6 @@ parser.add_argument('-p') # Senha do banco de dados
 args = parser.parse_args()
 
 
-
-
 start = datetime.datetime.now().timestamp()
 
 # Timestamp do inicio do programa
@@ -48,7 +46,11 @@ start1 = datetime.datetime.now().timestamp()
 # Carregamento dos arquivos json de configuração
 
 
-config_path = open("./config_path.txt").readlines()[0]
+try:
+    config_path = open("./config_path.txt").readlines()[0]
+except FileNotFoundError:
+    print("Arquivo 'config_path.txt' não encontrado. Saindo.")
+    exit(-1)
 
 config = json.load(open(f'{config_path}/config.json', 'r'))  # Configurações do bot
 #api = json.load(open(f"{config['config']}/api.json", "r")) # Configurações da API
@@ -70,6 +72,10 @@ try:
 except mysql.connector.ProgrammingError:
     print("Permissão negada!")
     exit()
+except mysql.connector.Error as e:
+    print(f"Erro: {e}")
+    exit()
+
 start2 = datetime.datetime.now().timestamp()
 
 apid = int(config['db']['api_id'])
@@ -135,7 +141,7 @@ def runtime():
                 if submission.created_utc <= timestmp:
                     break  # quebra o loop se o tempo de agora - x dias for maior que o tempo que criado.
                 # Pegar os splashes
-                cursor.execute(f"SELECT text FROM splashes WHERE owner={apid};")
+                cursor.execute("SELECT text FROM splashes WHERE owner=%s;", apid)
 
                 splashes = []
                 for x in cursor.fetchall():
@@ -675,7 +681,7 @@ def stat():  # Estatisticas do subreddit
 
             subs = subr.subscribers
 
-            cursor.execute(f"SELECT members FROM statistics WHERE id={last_id}")
+            cursor.execute(f"SELECT members FROM statistics WHERE id=%s;", last_id)
 
             last_members = int(cursor.fetchall()[0][0])
             growt = subs - last_members
@@ -850,12 +856,12 @@ if __name__ == '__main__':
                             break
                 elif inp[0] == "ADDSPLASH":
                     sql.commit()
-                    cursor.execute(f"SELECT id FROM splashes WHERE owner={apid}")
+                    cursor.execute(f"SELECT id FROM splashes WHERE owner=%s;", apid)
                     lastid = int(cursor.fetchall()[-1][0])
 
                     try:
                         cursor.execute(
-                            f"INSERT INTO splashes (id, owner, text) VALUES ({lastid + 1}, {apid}, {str(input('Texto: '))})")
+                            f"INSERT INTO splashes (id, owner, text) VALUES ({lastid + 1}, %s, {str(input('Texto: '))})", apid)
                     except Exception as e:
                         print(traceback.format_exc())
 
