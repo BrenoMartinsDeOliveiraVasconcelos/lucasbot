@@ -867,22 +867,53 @@ if __name__ == '__main__':
 
                     sql.commit()
                 elif inp[0] == "INJECT":
+                    # O comando inject faz injeções python ou sql
                     if config["debug"]["injectable"]:
                         while True:
-                            try:
-                                eval(input("INJECT => "))
-                            except SyntaxError:
-                                print("Saindo!")
-                                break
-                            except Exception as e:
-                                print(traceback.format_exc())
+                            if len(inp) > 0:
+                                if inp[1] == 'PYTHON':
+                                    try:
+                                        eval(input("INJECT => "))
+                                    except SyntaxError:
+                                        print("Saindo!")
+                                        break
+                                    except Exception as e:
+                                        print(traceback.format_exc())
+                                elif inp[1] == "SQL":
+                                    try:
+                                        sql.commit()
+                                        injection = input("INJECT => ")
+
+                                        if injection != "EXIT;":
+                                            cursor.execute(injection)
+                                            output = cursor.fetchall()
+                                            print(output)
+                                        else:
+                                            break
+                                    except mysql.connector.Error as e:
+                                        print(f"{e}")
+
                     else:
                         print("Não é possível usar esse comando se 'injectable' for False.")
                 elif inp[0] == "SWITCH":
                     if len(inp) > 1:
                         try:
-                            config["debug"][inp[1].lower()] = not config["debug"][inp[1].lower()]
-                            print("Alterado valor temporariamente.")
+                            agreement = False
+                            
+                            if inp[1] == "INJECTABLE":
+                                uinp = input("Ao alterar esse valor, você concorda sobre os potenciais riscos de segurança. Digite 'Eu concordo' para aceitar.\n=> ")
+                                if uinp == "Eu concordo":
+                                    if input("Senha do banco de dados: ") == args.p:
+                                        agreement = True
+                            else:
+                                agreement = True
+
+                            if agreement:
+                                config["debug"][inp[1].lower()] = not config["debug"][inp[1].lower()]   
+                                print("Alterado valor temporariamente.")
+                            else:
+                                print("Recusado.")
+                        
                         except KeyError:
                             print("Erro! chave não existnte.")
                 else:
