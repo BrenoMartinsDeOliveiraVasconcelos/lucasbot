@@ -455,7 +455,7 @@ def clearlog():
     while True:
         atime = datetime.datetime.now().timestamp()
         time.sleep(config["clear_log"])
-        open("log", "w+").write("")
+        open(f'{config["list_path"]}/log', "w+").write("")
         btime = datetime.datetime.now().timestamp()
         tools.log_runtime(clearlog, atime, btime)
 
