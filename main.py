@@ -432,15 +432,36 @@ def backup():
         atime = datetime.datetime.now().timestamp()
         try:
             current_time = datetime.datetime.now().strftime('%H:%M')
-
+            backup_path = config['backup']['path']
             # Só faz backup em determinados temopos
             if current_time in config["backup"]["time"] and not already_run:
-                folder = f"{config['backup']['path']}/{datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')}"  # Pega a pasta para salvar o backup
+                folder = f"{backup_path}/{datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')}"  # Pega a pasta para salvar o backup
                 src_list = [".", config_path, config["list_path"]]  # O sources
                 for src in src_list:
                     shutil.copytree(src, f"{folder}/{src.split('/')[-1] if src != '.' else 'Main'}",
                                     ignore=shutil.ignore_patterns("venv", "__", "pyenv"))  # Copia a árvore de pastas
                 #tools.logger(2, bprint=False, ex="Backup realizado")
+
+                # Deletar os backups dos dias mais antigos
+                folders = os.listdir(backup_path)
+                max_days = config["backup"]["max_days"]
+
+                if len(folders) > max_days:
+                    index = 0
+                    
+                    # Colocar o path nos indexes das pastas
+                    for f in folders:
+                        folders[index] = os.path.join(backup_path, f)
+                        index += 1
+
+                    # Tirar os mais recentes da lista de acordo com max_days
+                    for _ in range(0, max_days):
+                        del folders[-1]
+
+                    # Excluir os que restaram
+                    for f in folders:
+                        shutil.rmtree(f)
+
                 already_run = True
             else:
                 already_run = False

@@ -25,7 +25,8 @@
     "min_before_lock": 10,
     "backup": {
         "path": "PASTA ONDE FICA OS BACKUPS",
-        "time": ["HH:MM"]
+        "time": ["HH:MM"],
+        "max_days": 3
     },
     "stat": {
         "csv_path": "ONDE FICA SALVO O ARQUIVO CSV (NAO UTILIZADO)"
