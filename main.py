@@ -726,6 +726,7 @@ def lock_coms():
     reddit.validate_on_submit = True
     while True:
         atime = datetime.datetime.now().timestamp()
+        comlist = tools.getfiletext(open(f"{config['list_path']}/lcomid", "r"))
         try:
             subcount = 0
             submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
@@ -754,12 +755,12 @@ def lock_coms():
                                 
                                 body = body.split(" ")
 
-                                if "ENTENDIDO" in body:
+                                if "ENTENDIDO" in body and com.id not in comlist:
                                     if len(comments) > config["min_before_lock"]:
                                         submission.mod.lock()
                                         break
 
-                        open(f"{config['list_path']}/cid", "a").write(f"{com.id}\n")
+                        open(f"{config['list_path']}/comid", "a").write(f"{com.id}\n")
 
             btime = datetime.datetime.now().timestamp()
             tools.log_runtime(lock_coms, atime, btime)
