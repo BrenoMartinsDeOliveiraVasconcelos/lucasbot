@@ -171,6 +171,7 @@ def runtime():
                 indx = -1
                 # abrir a lista de corpos já salvos ou não
                 bodylist = json.load(open(f"{config['list_path']}/bodies/bodies.json", "r"))
+                bdoriginal = json.load(open(f"{config['list_path']}/bodies/bodies.json", "r"))
                 try:
                     bodylist[f"{submission.id}"]
                 except KeyError:
@@ -409,8 +410,9 @@ Voto | Quantidade | %
                         bd = com.body.split("\n")
                         fullbody = ftxt + ebotxt + etxt  # Cola as partes do comentário
                         if ">!NOEDIT!<" not in bd:  # Se não tiver ">!NOEDIT!<"
-                            if notInBody:
+                            if submission.id not in bdoriginal.keys():
                                 com.reply(body=bodytxt)  # Se ainda não tiver o texto original, o comenta
+                                tools.logger(2, ex=f"Cometado em {submission.id} o texto original em {com.id}")
                             com.edit(
                                 body=fullbody)  # Edita o comentário do placar
                             tools.logger(1, sub_id=submission.id)

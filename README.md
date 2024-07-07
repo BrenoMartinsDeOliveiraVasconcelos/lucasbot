@@ -8,7 +8,7 @@ Lucasbot é um bot feito para o subreddit r/EuSouOBabaca utilizando `python` e a
 |--|--|
 | Python |3.9  |
 | Bibliotecas|`praw, psutil, mysql-connector-python`  |
-| RAM|640 mb  |
+| RAM|768 mb  |
 | CPU|1 núcleo  |
 | Disco|Pelo menos 600 mb livres para armazenamento de backups|
 
