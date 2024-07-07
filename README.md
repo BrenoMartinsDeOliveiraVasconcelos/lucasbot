@@ -27,3 +27,5 @@ Depois de instalar as bibliotecas necessárias usando `python3 -m pip install -r
 | ADDSPLASH | Adiciona um texto debaixo do indicador de veredito |
 | INJECT SQL ou PYTHON | Se injectable em config.json for True, permite executar códigos sql ou python no programa |
 | SWITCH Chave em 'debug' | Altera temporariamente o valor presente no dicionário 'debug' em config.json |
+| LICENSE | Texto de licença |
+| ABOUTME | About me |

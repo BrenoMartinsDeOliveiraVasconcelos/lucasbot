@@ -938,6 +938,18 @@ if __name__ == '__main__':
                         
                         except KeyError:
                             print("Erro! chave não existnte.")
+                elif inp[0] == "LICENSE":
+                    print(f"""
+        {config["info"]["name"]}  Copyright (C) {datetime.datetime.now().year}  {config["info"]["author"]}
+    This program comes with ABSOLUTELY NO WARRANTY;
+    This is free software, and you are welcome to redistribute it
+    under certain conditions; Digite 'ABOUTME' para mostrar a licença completa.""")
+                elif inp[0] == "ABOUTME":
+                    license = open("./LICENSE.md", "r").readlines()
+
+                    for line in license:
+                        time.sleep(0.05)
+                        print(line, end="")
                 else:
                     print(f"O comando {inp[0]} não é válido.")
         except EOFError:
