@@ -13,7 +13,7 @@ Lucasbot é um bot feito para o subreddit r/EuSouOBabaca utilizando `python` e a
 | Disco|Pelo menos 600 mb livres para armazenamento de backups|
 
 ## Como rodar
-Depois de instalar as bibliotecas necessárias usando `python3 -m pip install -r requirements.txt`, basta configurar o bot usando o modelo em MODELOS e depois `python3 main.py`.
+Depois de instalar as bibliotecas necessárias usando `python3 -m pip install -r requirements.txt`, basta configurar o bot usando o modelo em MODELOS e depois `python3 main.py -p "Senha do banco de dados"`.
 
  ![Terminal com o bot rodando](https://i.imgur.com/uyYvogh.png)
  ## Comandos
