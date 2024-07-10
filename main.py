@@ -787,8 +787,14 @@ if __name__ == '__main__':
     prep.begin(config)
 
     # Carrega as funções
-    funcs = [(runtime, 11), (backup, 0), (clearlog, 0), (textwall, 41), (justification, 15), (filter, 38), (stat, 35), (lock_coms, 56)]
+    exdigits = config["exdigit"]
+    funcs = [[runtime], [backup], [clearlog], [textwall], [justification], [filter], [stat], [lock_coms]]
     
+    i = 0
+    for digit in exdigits:
+        funcs[i].append(digit)
+        i += 1
+
     # Inicializa os processos
     indx = 0
     processes = []

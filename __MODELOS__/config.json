@@ -46,6 +46,7 @@
         "backup": 60,
         "stat": 3600 
     },
+    "exdigit": [11, 0, 0, 41, 15, 38, 35, 56],
     "flairs": {
         "VOTO_COMUM": ["ID DA FLAIR DO POST", 0, "DESCRIÇÃO DO VOTO QUE VAI SER USADO PARA CONTAR O JULGAMENTO"],
         "VOTO_COMUM_BABACA": ["ID DA FLAIR DO POST", 0, "DESCRIÇÃO DO VOTO QUE VAI SER USADO PARA CONTAR O JULGAMENTO"],
