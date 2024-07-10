@@ -790,10 +790,14 @@ if __name__ == '__main__':
     exdigits = config["exdigit"]
     funcs = [[runtime], [backup], [clearlog], [textwall], [justification], [filter], [stat], [lock_coms]]
     
-    i = 0
-    for digit in exdigits:
-        funcs[i].append(digit)
-        i += 1
+    try:
+        i = 0
+        for digit in exdigits:
+            funcs[i].append(digit)
+            i += 1
+    except IndexError:
+        print("Má configuração de 'exdigit' em config.json!")
+        exit(-1)
 
     # Inicializa os processos
     indx = 0
