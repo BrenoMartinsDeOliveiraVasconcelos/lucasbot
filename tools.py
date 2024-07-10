@@ -39,7 +39,7 @@ def logger(tp, sub_id="", ex="", num="", reason="", bprint=False, com_id=""):
         msg = f"Comentário enviado em {sub_id}"
     elif tp == 1:
         msg = f"Comentário editado em {sub_id}"
-    elif tp == 2 or tp == 5:
+    elif tp == 2 or tp == 5 or tp == 7:
         msg = f"{ex}"
         if tp == 5:
             print(f"ERRO ({current_time}): {ex}")
@@ -58,7 +58,8 @@ def logger(tp, sub_id="", ex="", num="", reason="", bprint=False, com_id=""):
     if config["debug"]["log_verbose"]:
         print(msg)
 
-    logit(msg)
+    if tp != 7:
+        logit(msg)
 
 
 def log_runtime(func, a: float, b: float):
@@ -98,3 +99,26 @@ def getfiletext(file: io.TextIOWrapper) -> list:
 
 def clear_console() -> None:
     os.system("cls" if os.name=="nt" else "clear")
+
+
+def wait(exdigit: int) -> None:
+    '''
+    Para o programa até parar em um milisegundo terminado em um número específico
+    :param exdigit: int
+    :return: None
+    '''
+    if exdigit < 0 or exdigit > 59:
+        raise ValueError("O dígito de espera deve estar entre 0 e 59.")
+    elif exdigit == 0:
+        return None
+    
+    while True:
+        second = int(datetime.datetime.now().second)
+        if second % exdigit == 0:
+            logger(tp=7, ex=f"Rodado em {second}!")
+            break
+        else:
+            time.sleep(0.1)  # Aguarda 100 milissegundos
+
+    
+    return None

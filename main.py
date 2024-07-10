@@ -100,7 +100,7 @@ api = {
 
 
 # Função da thread principal
-def runtime():
+def runtime(exdigit: int):
     # Parte do meio do comentário
     botxt = f"\n\n# {config['upper_text']}\n\nOlá, meu nome é {config['info']['character']} e eu vou contar os votos que as pessoas dão nesse post. Pra seu voto ser contado, " \
             f"responda o post com uma dessas siglas nos comentários...\n\n"
@@ -129,6 +129,8 @@ def runtime():
 
             # Loop para iterar nas submissões
             for submission in submissons:
+                tools.wait(exdigit=exdigit)
+
                 sql.commit()
                 flairchanges = []
                 edits = []
@@ -428,7 +430,7 @@ Voto | Quantidade | %
 
 
 # Função de backup
-def backup():
+def backup(exdigit: int):
     already_run = False
     while True:
         atime = datetime.datetime.now().timestamp()
@@ -474,7 +476,7 @@ def backup():
 
 
 # Limpador de logs
-def clearlog():
+def clearlog(exdigit: int):
     while True:
         atime = datetime.datetime.now().timestamp()
         time.sleep(config["clear_log"])
@@ -484,7 +486,7 @@ def clearlog():
 
 
 # Verificador de paredes de texto
-def textwall():
+def textwall(exdigit: int):
     reddit.validate_on_submit = True
     while True:
         atime = datetime.datetime.now().timestamp()
@@ -492,6 +494,8 @@ def textwall():
             subcount = 0
             submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
             for submission in submissons:
+                tools.wait(exdigit=exdigit)
+                        
                 time.sleep(config["sleep_time"]["textwall"])
                 subcount += 1
                 subid = submission.id
@@ -560,7 +564,7 @@ def textwall():
             tools.logger(tp=5, ex=traceback.format_exc())
 
 
-def justification():
+def justification(exdigit: int):
     '''
     Sistema que exige justifiação do post. Verifica depois de 1 hora de postado se o post foi justificado.
     :return:
@@ -572,6 +576,8 @@ def justification():
             subcount = 0
             submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
             for submission in submissons:
+                tools.wait(exdigit=exdigit)
+
                 reasonings = json.load(open(f"{config['list_path']}/reasoning/reasonings.json", "r"))
                 now = datetime.datetime.now().timestamp()
                 time.sleep(config["sleep_time"]["justification"])
@@ -644,7 +650,7 @@ def justification():
 
 
 # Filtro para reportar comentários potencialmente perigosos
-def filter():
+def filter(exdigit: int):
     reddit.validate_on_submit = True
     while True:
         atime = datetime.datetime.now().timestamp()
@@ -653,6 +659,8 @@ def filter():
             submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
 
             for submission in submissons:
+                tools.wait(exdigit=exdigit)
+
                 keywords = tools.getfiletext(open(f"{config['list_path']}/keywords.txt", "r"))  # Palavras de filtro
 
                 time.sleep(config["sleep_time"]["filter_sub"])
@@ -688,9 +696,11 @@ def filter():
             tools.logger(tp=5, ex=traceback.format_exc())
 
 
-def stat():  # Estatisticas do subreddit
+def stat(exdigit: int):  # Estatisticas do subreddit
     while True:
         try:
+            tools.wait(exdigit=exdigit)
+
             add = False
             subr = reddit.subreddit(config["subreddit"])
             reddit.validate_on_submit = True
@@ -724,7 +734,7 @@ def stat():  # Estatisticas do subreddit
             tools.logger(tp=5, ex=traceback.format_exc())
 
     
-def lock_coms():
+def lock_coms(exdigit: int):
     reddit.validate_on_submit = True
     while True:
         atime = datetime.datetime.now().timestamp()
@@ -734,6 +744,7 @@ def lock_coms():
             submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
 
             for submission in submissons:
+                tools.wait(exdigit=exdigit)
 
                 time.sleep(config["sleep_time"]["lock_com"])
                 subcount += 1
@@ -776,8 +787,15 @@ if __name__ == '__main__':
     prep.begin(config)
 
     # Carrega as funções
-    funcs = [runtime, backup, clearlog, textwall, justification, filter, stat, lock_coms]
-    processes = [multiprocessing.Process(target=x, args=[], name=x.__name__) for x in funcs]  # Inicializa os processos
+    funcs = [(runtime, 11), (backup, 0), (clearlog, 0), (textwall, 41), (justification, 15), (filter, 38), (stat, 35), (lock_coms, 56)]
+    
+    # Inicializa os processos
+    indx = 0
+    processes = []
+    for x in funcs:
+
+        indx = x[1]
+        processes.append(multiprocessing.Process(target=x[0], args=[indx], name=x[0].__name__))
 
     pids = [os.getpid()]
 
@@ -789,13 +807,13 @@ if __name__ == '__main__':
 
         index += 1
         i.start()
-        pids.append(i.pid)  # Salva os pids
+        pids.append(i.pid)  # Salva os pids  
 
         func_end = datetime.datetime.now().timestamp()  # ms da função
         func_total += (func_end - func_start) * 1000
 
         print(
-            f"Iniciado processo com o PID {i.pid} para a função {funcs[index].__name__}: {(func_end - func_start) * 1000:.0f} ms")
+            f"Iniciado processo com o PID {i.pid} para a função {funcs[index][0].__name__}: {(func_end - func_start) * 1000:.0f} ms")
 
         # Termino do processo de inicializaçãp.
 
@@ -853,7 +871,7 @@ if __name__ == '__main__':
                                     cputotal += cpu
 
                                     print(
-                                        f"{funcs[index].__name__ if r > 0 else 'main'} ({process.pid}): {mem_qnt:.0f} mb, {cpu:.2f}% CPU")
+                                        f"{funcs[index][0].__name__ if r > 0 else 'main'} ({process.pid}): {mem_qnt:.0f} mb, {cpu:.2f}% CPU")
 
                                     if r > 0:
                                         index += 1
