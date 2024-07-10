@@ -185,7 +185,7 @@ def runtime(exdigit: int):
                 open(f"{config['list_path']}/bodies/bodies.json", "w+").write(bodies_json)
                 if submission.id not in sublist:  # Se a submissão não tiver nos ids
                     submission.reply(
-                        body="OP, por favor responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento. Caso você já tenha entendido seu julgamento, responda com 'Entendido' para fechar os comentários.\n\n>!NOEDIT!<")
+                        body="OP, por favor responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento.\n\n>!NOEDIT!<")
                     botcomment = submission.reply(
                         body=ftxt + botxt + etxt)  # Responde a publicação com a soma das partes como placeholder
                     tools.logger(0, sub_id=submission.id)
@@ -733,53 +733,6 @@ def stat(exdigit: int):  # Estatisticas do subreddit
         except Exception:
             tools.logger(tp=5, ex=traceback.format_exc())
 
-    
-def lock_coms(exdigit: int):
-    reddit.validate_on_submit = True
-    while True:
-        atime = datetime.datetime.now().timestamp()
-        comlist = tools.getfiletext(open(f"{config['list_path']}/lcomid", "r"))
-        try:
-            subcount = 0
-            submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
-
-            for submission in submissons:
-                tools.wait(exdigit=exdigit)
-
-                time.sleep(config["sleep_time"]["lock_com"])
-                subcount += 1
-
-                submission.comment_sort = 'new'  # Filtra os comentários por novos
-                submission.comments.replace_more(limit=None)
-                comments = submission.comments.list()
-
-                # Iteração pela lista de comentários
-                for com in comments:
-                    time.sleep(config["sleep_time"]["lock_com"])
-                    if com.author == api["username"]:
-                        replies = com.replies
-
-                        for r in replies:
-                            if r.author == submission.author:
-                                body = r.body.upper()
-
-                                for rep in config["replace_list"]:
-                                    body = body.replace(rep, " ")
-                                
-                                body = body.split(" ")
-
-                                if "ENTENDIDO" in body and com.id not in comlist:
-                                    if len(comments) > config["min_before_lock"]:
-                                        submission.mod.lock()
-                                        break
-
-                        open(f"{config['list_path']}/comid", "a").write(f"{com.id}\n")
-
-            btime = datetime.datetime.now().timestamp()
-            tools.log_runtime(lock_coms, atime, btime)
-        except Exception:
-            tools.logger(tp=5, ex=traceback.format_exc())
-
 
 if __name__ == '__main__':
     tools.clear_console()
@@ -788,7 +741,7 @@ if __name__ == '__main__':
 
     # Carrega as funções
     exdigits = config["exdigit"]
-    funcs = [[runtime], [backup], [clearlog], [textwall], [justification], [filter], [stat], [lock_coms]]
+    funcs = [[runtime], [backup], [clearlog], [textwall], [justification], [filter], [stat]]
     
     try:
         i = 0
