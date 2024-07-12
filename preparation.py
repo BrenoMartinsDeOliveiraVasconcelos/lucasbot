@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 
 
-def begin(config: dict):
+def begin(config: dict) -> None:
     '''
     Prepara os arquivos que serão usados pelo script
     :return: None
@@ -27,28 +27,36 @@ def begin(config: dict):
     # Função de preparação
 
     #./bodies
-    if os.path.exists(f"{config['list_path']}/bodies"):
-        if not os.path.exists(f"{config['list_path']}/bodies/bdlist"):
-            open(f"{config['list_path']}/bodies/bdlist", "w+")
 
-        if not os.path.exists(f"{config['list_path']}/bodies/bodies.json"):
+    try:
+        if os.path.exists(f"{config['list_path']}/bodies"):
+            if not os.path.exists(f"{config['list_path']}/bodies/bdlist"):
+                open(f"{config['list_path']}/bodies/bdlist", "w+")
+
+            if not os.path.exists(f"{config['list_path']}/bodies/bodies.json"):
+                open(f"{config['list_path']}/bodies/bodies.json", "w+").write("{}")
+
+            if not os.path.exists(f"{config['list_path']}/reasoning/reasonings.json"):
+                open(f"{config['list_path']}/reasoning/reasonings.json", "w+").write("{}")
+        else:
+            os.mkdir(f"{config['list_path']}/bodies")
+            open(f"{config['list_path']}/bodies/bdlist", "w+")
             open(f"{config['list_path']}/bodies/bodies.json", "w+").write("{}")
 
-        if not os.path.exists(f"{config['list_path']}/reasoning/reasonings.json"):
-            open(f"{config['list_path']}/reasoning/reasonings.json", "w+").write("{}")
-    else:
-        os.mkdir(f"{config['list_path']}/bodies")
-        open(f"{config['list_path']}/bodies/bdlist", "w+")
-        open(f"{config['list_path']}/bodies/bodies.json", "w+").write("{}")
+        # arquivo de log e id
+        emptytxts = ["idlist", "log", "rid", "aid", "aarid", "jid", "cid", "keywords.txt", "pids"]
+        for i in emptytxts:
+            if not os.path.exists(f"{config['list_path']}/{i}"):
+                open(f"{config['list_path']}/{i}", "w+")
 
-    # arquivo de log e id
-    emptytxts = ["idlist", "log", "rid", "aid", "aarid", "jid", "cid", "keywords.txt", "pids"]
-    for i in emptytxts:
-        if not os.path.exists(f"{config['list_path']}/{i}"):
-            open(f"{config['list_path']}/{i}", "w+")
-
-    # Pastas vazias
-    folders = ["runtime_info"]
-    for i in folders:
-        if not os.path.exists(f"{config['list_path']}/{i}"):
-            os.mkdir(f"{config['list_path']}/{i}")
+        # Pastas vazias
+        folders = ["runtime_info"]
+        for i in folders:
+            if not os.path.exists(f"{config['list_path']}/{i}"):
+                os.mkdir(f"{config['list_path']}/{i}")
+    except PermissionError:
+        print("O diretóŕio em list_path é inacessível para o usuário executando o script. Edite o arquivo config.json ou conceda as devidas permissões.")
+        exit(-1)
+    except FileNotFoundError:
+        print(f"O diretório especificado {config['list_path']} não existe. Edite o arquivo config.json ou crie-o.")
+        exit(-1)

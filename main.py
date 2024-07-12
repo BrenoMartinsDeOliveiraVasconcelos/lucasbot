@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import datetime
 import praw
 import json
+
+import praw.exceptions
 import tools
 import multiprocessing
 import shutil
@@ -49,14 +51,38 @@ start1 = datetime.datetime.now().timestamp()
 try:
     config_path = open("./config_path.txt").readlines()[0]
 except FileNotFoundError:
-    print("Arquivo 'config_path.txt' não encontrado. Saindo.")
+    try:
+        print("Arquivo 'config_path.txt' não encontrado. Será criado o arquivo, por favor edite colocando o caminho do arquivo de configuração.")
+        open("./config_path.txt", "w+").write("")
+        exit(-1)
+    except PermissionError:
+        print("Permissão negada ao criar o arquivo.")
+        exit(-1)
+except PermissionError:
+    print("Permissão de leitura ao arquivo config_path.txt negada! Não é possível prosseguir")
     exit(-1)
 
-config = json.load(open(f'{config_path}/config.json', 'r'))  # Configurações do bot
-#api = json.load(open(f"{config['config']}/api.json", "r")) # Configurações da API
-#splashes = json.load(open(f"{config['config']}/splashes.json", 'r')) # Mensagens localizadas no final do comentário do bot
-reasons = json.load(open(f"{config['config']}/reasons.json", "r"))  # Motivos para punição automatizada
-boot = True
+try:
+    config = json.load(open(f'{config_path}/config.json', 'r'))  # Configurações do bot
+    reasons = json.load(open(f"{config['config']}/reasons.json", "r"))  # Motivos para punição automatizada
+    boot = True
+except FileNotFoundError:
+    print(f"Arquivos de configuração não encontrados... Eles realmente existem? Criando com base no modelo! Edite os arquivo em {config_path}!")
+    models = "./__MODElS__"
+
+    if os.path.exists(models):
+        try:
+            for file in os.listdir(models):
+                shutil.copy(os.path.join(models, file), config_path)
+        except PermissionError:
+            print("Permissão negada! Abortando.")
+            exit(-1)
+    else:
+        print("Pasta de modelos não encontrada não encontrada! Abortando.")
+        exit(-1)
+except PermissionError:
+    print("Permissão negada ao ler os arquivos de configuração. Não será possível prosseguir.")
+    exit(-1)
 
 print(f"Bem-vindo!")
 
@@ -70,7 +96,7 @@ try:
         database=config["db"]["database"]
     )
 except mysql.connector.ProgrammingError:
-    print("Permissão negada!")
+    print("Permissão negada ao conectar ao banco de dados mysql.")
     exit()
 except mysql.connector.Error as e:
     print(f"Erro: {e}")
@@ -86,13 +112,17 @@ cursor.execute(f"SELECT * FROM users WHERE id={apid};")
 api_t = cursor.fetchall()
 
 # Entrar no reddit
-reddit = praw.Reddit(
-    user_agent=api_t[0][5],
-    client_id=api_t[0][2],
-    client_secret=api_t[0][3],
-    username=api_t[0][1],
-    password=api_t[0][4]
-)
+
+try:
+    reddit = praw.Reddit(
+        user_agent=api_t[0][5],
+        client_id=api_t[0][2],
+        client_secret=api_t[0][3],
+        username=api_t[0][1],
+        password=api_t[0][4]
+    )
+except praw.exceptions.APIException:
+    print("Permissão negada ao conectar ao Reddit. Verifique as credenciais e tente novamente.")
 
 api = {
     "username": api_t[0][1]
@@ -810,6 +840,9 @@ if __name__ == '__main__':
                         i.terminate()
 
                     break
+                elif inp[0] == "LEAVE":
+                    print("Saindo do modo de input.")
+                    break
                 elif inp[0] == "RESTART":  # Reinicia o programa
                     for i in processes:
                         i.terminate()
@@ -940,4 +973,9 @@ if __name__ == '__main__':
         except EOFError:
             print("Fim do arquivo de input. Encerrando loop de comandos.")
             break
+
+
+    # Loop while que acontece em caso de EOFError ou qualquer outro erro que termine o loop de comandos.
+    while True:
+        time.sleep(0.1)
         
