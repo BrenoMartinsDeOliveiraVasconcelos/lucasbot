@@ -478,11 +478,13 @@ def backup(exdigit: int):
 # Limpador de logs
 def clearlog(exdigit: int):
     while True:
-        atime = datetime.datetime.now().timestamp()
-        time.sleep(config["clear_log"])
-        open(f'{config["list_path"]}/log', "w+").write("")
-        btime = datetime.datetime.now().timestamp()
-        tools.log_runtime(clearlog, atime, btime)
+        current = f"{datetime.datetime.now().hour}:{datetime.datetime.now().minute}"
+
+        if current in config["clear_log"]:
+            open(f'{config["list_path"]}/log', "w+").write("")
+            time.sleep(60)
+
+        time.sleep(0.1)
 
 
 # Verificador de paredes de texto
