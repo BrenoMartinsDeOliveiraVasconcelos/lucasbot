@@ -111,11 +111,15 @@ cursor = sql.cursor()
 cursor.execute(f"SELECT * FROM users WHERE id={apid};")
 api_t = cursor.fetchall()
 
+# Gerar user agent
+
+uagent = f'<{os.name}>:<{config["info"]["name"]}>:<{config["info"]["version"]}> (by /u/{config["info"]["creator"]})'
+
 # Entrar no reddit
 
 try:
     reddit = praw.Reddit(
-        user_agent=api_t[0][5],
+        user_agent=uagent,
         client_id=api_t[0][2],
         client_secret=api_t[0][3],
         username=api_t[0][1],

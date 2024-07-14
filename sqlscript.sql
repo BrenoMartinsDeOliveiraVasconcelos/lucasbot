@@ -2,7 +2,7 @@
 -- Servidor:                     192.168.1.21
 -- Versão do servidor:           10.11.6-MariaDB-0+deb12u1 - Debian 12
 -- OS do Servidor:               debian-linux-gnu
--- HeidiSQL Versão:              12.7.0.6850
+-- HeidiSQL Versão:              12.8.0.6908
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -66,7 +66,6 @@ CREATE TABLE IF NOT EXISTS `users` (
   `client` varchar(50) NOT NULL,
   `secret` varchar(50) NOT NULL,
   `password` varchar(1000) NOT NULL,
-  `user_agent` varchar(1000) NOT NULL,
   `subreddit` varchar(21) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
