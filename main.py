@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import datetime
 import praw
 import json
-
 import praw.exceptions
 import tools
 import multiprocessing
@@ -447,6 +446,12 @@ Voto | Quantidade | %
                         fullbody = ftxt + ebotxt + etxt  # Cola as partes do comentário
                         if ">!NOEDIT!<" not in bd:  # Se não tiver ">!NOEDIT!<"
                             if submission.id not in bdoriginal.keys():
+                                # Cortar o texto caso esteja proximo demais de 10k de caracteres (limite do reddit)
+                                if len(bodytxt) > config["cutting_chars"]:
+                                    chars_btxt = [x for x in bodytxt]
+                                    del chars_btxt[config["cutting_chars"]:len(bodytxt)-1]
+                                    bodytxt = "".join(chars_btxt) + "**Texto cortado por ser muito grande**"
+
                                 com.reply(body=bodytxt)  # Se ainda não tiver o texto original, o comenta
                                 tools.logger(2, ex=f"Cometado em {submission.id} o texto original em {com.id}")
                             com.edit(

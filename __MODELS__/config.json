@@ -21,6 +21,7 @@
     "config": "CAMINHO DA PASTA ONDE TEM OS ARQUIVOS DE CONFIGURAÇÃO",
     "upper_text": "TEXTO QUE FICA DEBAIXO DOS RESULTADOS DA VOTAÇÃO",
     "submissions": "NUMERO DE POSTS REQUISITADOS NA API DO praw",
+    "cutting_chars": "NUMERO DE CARACTERES ANTES DE CORTAR POR SER MUITO GRANDE",
     "subreddit": "SUBREDDIT",
     "log_subreddit": "SUBREDDIT DE LOG",
     "min_before_lock": 10,
