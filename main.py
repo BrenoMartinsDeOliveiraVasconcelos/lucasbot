@@ -199,23 +199,9 @@ def runtime(exdigit: int):
                 sublist = tools.getfiletext(open(f"{config['list_path']}/idlist", "r"))
 
                 indx = -1
-                bdlist = open(f"{config['list_path']}/bodies/bdlist", "r").readlines()
-                for sub in bdlist:
-                    indx += 1
-                    bdlist[indx] = sub.strip()
-                indx = -1
                 # abrir a lista de corpos já salvos ou não
-                bodylist = json.load(open(f"{config['list_path']}/bodies/bodies.json", "r"))
-                bdoriginal = json.load(open(f"{config['list_path']}/bodies/bodies.json", "r"))
-                try:
-                    bodylist[f"{submission.id}"]
-                except KeyError:
-                    bodylist[f"{submission.id}"] = submission.selftext
-
-                bodies_json = json.dumps(bodylist, indent=4)
 
                 # Salva as alterações no arquivo de corpos
-                open(f"{config['list_path']}/bodies/bodies.json", "w+").write(bodies_json)
                 if submission.id not in sublist:  # Se a submissão não tiver nos ids
                     submission.reply(
                         body="OP, por favor responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento.\n\n>!NOEDIT!<")
@@ -407,20 +393,6 @@ Voto | Quantidade | %
                 flairchanges += f"\n* Flair de https://www.reddit.com/{submission.id} é '{judgment}'"
                 tools.logger(2, ex=f"Flair editada em {submission.id}")
 
-                notInBody = False
-                if submission.id not in bdlist:  # Se a bumissão não tiver na lista de corpos...
-                    notInBody = True
-                    open(f"{config['list_path']}/bodies/bdlist", "a").write(f"{submission.id}\n")
-
-                body_obj = bodylist[f"{submission.id}"].split("\n\n")  # Pega o corpo do comentário
-                index = 0
-                for line in body_obj:
-                    body_obj[index] = ">" + line + "\n\n"  # Formata certinho
-                    index += 1
-
-                body_obj = ''.join(body_obj)
-                bodytxt = f"\n\n# Texto original\n\n{body_obj}\n\n>!NOEDIT!<"  # Adiciona o header
-
                 # Adiciona a justificativa no corpo do bot
                 ebotxt = botxt
                 ebotxt += f"\n\nDe acordo com u/{submission.author}, o motivo dele se achar ou não um babaca é esse:\n\n"
@@ -445,15 +417,6 @@ Voto | Quantidade | %
                         bd = com.body.split("\n")
                         fullbody = ftxt + ebotxt + etxt  # Cola as partes do comentário
                         if ">!NOEDIT!<" not in bd:  # Se não tiver ">!NOEDIT!<"
-                            if submission.id not in bdoriginal.keys():
-                                # Cortar o texto caso esteja proximo demais de 10k de caracteres (limite do reddit)
-                                if len(bodytxt) > config["cutting_chars"]:
-                                    chars_btxt = [x for x in bodytxt]
-                                    del chars_btxt[config["cutting_chars"]:len(bodytxt)-1]
-                                    bodytxt = "".join(chars_btxt) + "**Texto cortado por ser muito grande**"
-
-                                com.reply(body=bodytxt)  # Se ainda não tiver o texto original, o comenta
-                                tools.logger(2, ex=f"Cometado em {submission.id} o texto original em {com.id}")
                             com.edit(
                                 body=fullbody)  # Edita o comentário do placar
                             tools.logger(1, sub_id=submission.id)

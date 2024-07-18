@@ -29,19 +29,8 @@ def begin(config: dict) -> None:
     #./bodies
 
     try:
-        if os.path.exists(f"{config['list_path']}/bodies"):
-            if not os.path.exists(f"{config['list_path']}/bodies/bdlist"):
-                open(f"{config['list_path']}/bodies/bdlist", "w+")
-
-            if not os.path.exists(f"{config['list_path']}/bodies/bodies.json"):
-                open(f"{config['list_path']}/bodies/bodies.json", "w+").write("{}")
-
-            if not os.path.exists(f"{config['list_path']}/reasoning/reasonings.json"):
-                open(f"{config['list_path']}/reasoning/reasonings.json", "w+").write("{}")
-        else:
-            os.mkdir(f"{config['list_path']}/bodies")
-            open(f"{config['list_path']}/bodies/bdlist", "w+")
-            open(f"{config['list_path']}/bodies/bodies.json", "w+").write("{}")
+        if not os.path.exists(f"{config['list_path']}/reasoning/reasonings.json"):
+            open(f"{config['list_path']}/reasoning/reasonings.json", "w+").write("{}")
 
         # arquivo de log e id
         emptytxts = ["idlist", "log", "rid", "aid", "aarid", "jid", "cid", "keywords.txt", "pids"]
