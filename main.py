@@ -207,6 +207,7 @@ def runtime(exdigit: int):
                         body="OP, por favor responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento.\n\n>!NOEDIT!<")
                     botcomment = submission.reply(
                         body=ftxt + botxt + etxt)  # Responde a publicação com a soma das partes como placeholder
+                    botcomment.reply(body="# Texto original\n\n"+submission.selftext+"\n\n>!NOEDIT!<")
                     tools.logger(0, sub_id=submission.id)
                     botcomment.mod.distinguish(sticky=True)  # Marca o comentário como MOD e o fixa
                     botcomment.mod.approve()  # Aprova o comentário
