@@ -533,19 +533,16 @@ def textwall(exdigit: int):
                         for i in body:
                             index += 1
                             chars += 1
-                            try:
-                                if i == "\n" and body[index + 1] == "\n":
-                                    paragraphs += 1
-                                    sentences += 1
-                                    paragraph_cond = True
-                            except IndexError:
-                                pass
 
                             # Quantas frases tem
-                            if i in [".", "?", "!"] and not paragraph_cond:
+                            if i in [".", "?", "!", " "]:
                                 sentences += 1
 
                             paragraph_cond = False
+                        
+                        # Tentativa de contar os paragrafos de um jeito melhor
+                        split_body = body.split("\n\n")
+                        paragraphs = len(split_body)
                     else:
                         # Se não, é zero!
                         paragraphs = 0
