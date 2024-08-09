@@ -512,7 +512,7 @@ def textwall(exdigit: int):
                     indx += 1
                     sublist[indx] = i.strip()
 
-                if subid not in sublist:  # Se o submissão não tiver na lista de subs...
+                if submission.id not in sublist:  # Se o submissão não tiver na lista de subs...
                     try:
                         body = submission.selftext  # Pega o corpo do texto
                     except:
@@ -551,15 +551,29 @@ def textwall(exdigit: int):
                         paragraphs = 0
                         sentences = 0
 
+                    min_paragraphs = config["text_filter"]["min_paragraphs"]
+                    min_sentences = config["text_filter"]["min_sentences"]
+                    max_body = config["text_filter"]["max_body"]
+                    min_body = config["text_filter"]["min_body"]
                     # Remove a publicação suspeita de parede de texto.
-                    if (paragraphs < config["text_filter"]["min_paragraphs"] or
-                            sentences < config["text_filter"]["min_sentences"] or
-                            len(body) > config["text_filter"]["max_body"] or
-                            len(body) < config["text_filter"]["min_body"]):
+                    if (paragraphs < min_paragraphs or
+                            sentences < min_sentences or
+                            len(body) > max_body or
+                            len(body) < min_body):
+                    
                         reason = reasons['TEXTWALL']
                         submission.mod.remove(mod_note=reason['note'], spam=False)
-                        submission.reply(body=reason[
-                                                  'body'] + f"\n\nParágrafos: {paragraphs}\n\nFrases: {sentences}\n\nCaractéres: {chars}")
+                        reasonstr = f"Post caiu no filtro de parede de texto. Confira os critérios analizados:\n\n"
+
+                        # Adicionar as condicionais e seus valores booleanos
+                        conds = [f"* Tem o número minimo de paragrafos? {'sim' if paragraphs >= min_paragraphs else 'não'} (Mínmo: {min_paragraphs})", 
+                                 f"* Tem o número minimo de frases? {'sim' if sentences >= min_sentences else 'não'} (Mínmo: {min_sentences})", 
+                                 f"* Menor que o número máximo de caractéres? {'sim' if len(body) <= max_body else 'não'} (Máximo: {max_body})", 
+                                 f"* Tem o número mínimo de caractéres? {'sim' if len(body) >= min_body else 'não'} (Mínimo: {min_body})"]
+                        for x in range(0, len(conds)):
+                            reasonstr += conds[x]+"\n"
+
+                        submission.reply(body=reasonstr + f"\n\nParágrafos: {paragraphs}\n\nFrases: {sentences}\n\nCaractéres: {chars}")
                         tools.logger(tp=4, sub_id=subid, reason="Parede de texto")
 
                         open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
