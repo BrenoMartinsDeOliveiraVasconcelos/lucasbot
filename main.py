@@ -48,6 +48,7 @@ start1 = datetime.datetime.now().timestamp()
 # Carregamento dos arquivos json de configuração
 
 config = tools.config
+reasons = tools.reasons
 print(f"Bem-vindo!")
 
 # Carregar o banco de dados para pegar informações
