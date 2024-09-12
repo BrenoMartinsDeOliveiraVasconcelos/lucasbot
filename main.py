@@ -33,6 +33,7 @@ import mysql.connector
 import preparation as prep
 import argparse
 
+
 parser = argparse.ArgumentParser(prog='lucasbot', description='Bot do reddit.')
 
 parser.add_argument('-p') # Senha do banco de dados
@@ -46,66 +47,20 @@ start1 = datetime.datetime.now().timestamp()
 
 # Carregamento dos arquivos json de configuração
 
-
-try:
-    config_path = open("./config_path.txt").readlines()[0]
-except FileNotFoundError:
-    try:
-        print("Arquivo 'config_path.txt' não encontrado. Será criado o arquivo, por favor edite colocando o caminho do arquivo de configuração.")
-        open("./config_path.txt", "w+").write("")
-        exit(-1)
-    except PermissionError:
-        print("Permissão negada ao criar o arquivo.")
-        exit(-1)
-except PermissionError:
-    print("Permissão de leitura ao arquivo config_path.txt negada! Não é possível prosseguir")
-    exit(-1)
-
-try:
-    config = json.load(open(f'{config_path}/config.json', 'r'))  # Configurações do bot
-    reasons = json.load(open(f"{config['config']}/reasons.json", "r"))  # Motivos para punição automatizada
-    boot = True
-except FileNotFoundError:
-    print(f"Arquivos de configuração não encontrados... Eles realmente existem? Criando com base no modelo! Edite os arquivo em {config_path}!")
-    models = "./__MODElS__"
-
-    if os.path.exists(models):
-        try:
-            for file in os.listdir(models):
-                shutil.copy(os.path.join(models, file), config_path)
-        except PermissionError:
-            print("Permissão negada! Abortando.")
-            exit(-1)
-    else:
-        print("Pasta de modelos não encontrada não encontrada! Abortando.")
-        exit(-1)
-except PermissionError:
-    print("Permissão negada ao ler os arquivos de configuração. Não será possível prosseguir.")
-    exit(-1)
-
+config = tools.config
 print(f"Bem-vindo!")
 
 # Carregar o banco de dados para pegar informações
 end1 = datetime.datetime.now().timestamp()
-try:
-    sql = mysql.connector.connect(
-        host=config["db"]["host"],
-        user=config["db"]["user"],
-        password=args.p,
-        database=config["db"]["database"]
-    )
-except mysql.connector.ProgrammingError:
-    print("Permissão negada ao conectar ao banco de dados mysql.")
-    exit()
-except mysql.connector.Error as e:
-    print(f"Erro: {e}")
-    exit()
-
 start2 = datetime.datetime.now().timestamp()
+
+sql = tools.db_connect(args=args)
 
 apid = int(config['db']['api_id'])
 
 cursor = sql.cursor()
+cursor.execute('set global max_allowed_packet=67108864;')
+sql.commit()
 
 cursor.execute(f"SELECT * FROM users WHERE id={apid};")
 api_t = cursor.fetchall()
@@ -134,6 +89,7 @@ api = {
 
 # Função da thread principal
 def runtime(exdigit: int):
+
     # Parte do meio do comentário
     botxt = f"\n\n# {config['upper_text']}\n\nOlá, meu nome é {config['info']['character']} e eu vou contar os votos que as pessoas dão nesse post. Pra seu voto ser contado, " \
             f"responda o post com uma dessas siglas nos comentários...\n\n"
@@ -150,6 +106,9 @@ def runtime(exdigit: int):
 
     # Loop principal da função 
     while True:
+        sql = tools.db_connect(args=args)
+
+        cursor = sql.cursor()
         try:
 
             # Texto placeholder para a parte que diz o veredito atual
@@ -717,6 +676,9 @@ def filter(exdigit: int):
 
 def stat(exdigit: int):  # Estatisticas do subreddit
     while True:
+        sql = tools.db_connect(args=args)
+
+        cursor = sql.cursor()
         try:
             tools.wait(exdigit=exdigit)
 
@@ -805,12 +767,11 @@ if __name__ == '__main__':
 
     end2 = datetime.datetime.now().timestamp()
 
-    sql_connect_time = (start2 - end1) * 1000
     total_main = (((end2 - start2) + (
-                end1 - start1)) * 1000) + sql_connect_time 
+                end1 - start1)) * 1000)
 
     print(
-        f"main: {total_main:.0f} ms. ({total_main - (func_total + sql_connect_time):.0f} ms de inicialização, {sql_connect_time:.0f} ms de conexão ao mysql e {func_total:.0f} ms de preparação)")
+        f"main: {total_main:.0f} ms. ({total_main - (func_total):.0f} ms de inicialização e {func_total:.0f} ms de preparação)")
 
     # Loop para os comandos (primeiro plano)
     while True:

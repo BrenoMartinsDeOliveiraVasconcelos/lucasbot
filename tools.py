@@ -20,8 +20,44 @@ import io
 import json
 import os
 import time
+import mysql.connector
+import shutil
 
-config = json.load(open(f"{open('./config_path.txt').readlines()[0]}/config.json", "r"))
+try:
+    config_path = open("./config_path.txt").readlines()[0].replace("\n", "")
+except FileNotFoundError:
+    try:
+        print("Arquivo 'config_path.txt' não encontrado. Será criado o arquivo, por favor edite colocando o caminho do arquivo de configuração.")
+        open("./config_path.txt", "w+").write("")
+        exit(-1)
+    except PermissionError:
+        print("Permissão negada ao criar o arquivo.")
+        exit(-1)
+except PermissionError:
+    print("Permissão de leitura ao arquivo config_path.txt negada! Não é possível prosseguir")
+    exit(-1)
+
+try:
+    config = json.load(open(f'{config_path}/config.json', 'r'))  # Configurações do bot
+    reasons = json.load(open(f"{config['config']}/reasons.json", "r"))  # Motivos para punição automatizada
+    boot = True
+except FileNotFoundError:
+    print(f"Arquivos de configuração não encontrados... Eles realmente existem? Criando com base no modelo! Edite os arquivo em {config_path}!")
+    models = "./__MODElS__"
+
+    if os.path.exists(models):
+        try:
+            for file in os.listdir(models):
+                shutil.copy(os.path.join(models, file), config_path)
+        except PermissionError:
+            print("Permissão negada! Abortando.")
+            exit(-1)
+    else:
+        print("Pasta de modelos não encontrada não encontrada! Abortando.")
+        exit(-1)
+except PermissionError:
+    print("Permissão negada ao ler os arquivos de configuração. Não será possível prosseguir.")
+    exit(-1)
 
 
 # Função que escreve no arquivo de log
@@ -122,3 +158,21 @@ def wait(exdigit: int) -> None:
 
     
     return None
+
+
+def db_connect(args):
+    try:
+        sql = mysql.connector.connect(
+            host=config["db"]["host"],
+            user=config["db"]["user"],
+            password=args.p,
+            database=config["db"]["database"]
+        )
+    except mysql.connector.ProgrammingError:
+        print("Permissão negada ao conectar ao banco de dados mysql.")
+        exit()
+    except mysql.connector.Error as e:
+        print(f"Erro: {e}")
+        exit()
+
+    return sql
