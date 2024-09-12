@@ -49,6 +49,9 @@ start1 = datetime.datetime.now().timestamp()
 
 config = tools.config
 reasons = tools.reasons
+boot = tools.boot
+
+
 print(f"Bem-vindo!")
 
 # Carregar o banco de dados para pegar informações
