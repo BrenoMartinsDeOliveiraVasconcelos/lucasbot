@@ -920,6 +920,10 @@ if __name__ == '__main__':
                     for line in license:
                         time.sleep(0.05)
                         print(line, end="")
+                elif inp[0] == "CLEAR":
+                    tools.clear_console()
+                elif inp[0] == "":
+                    print("Nenhum comando a executar.")
                 else:
                     print(f"O comando {inp[0]} não é válido.")
         except EOFError:
