@@ -526,7 +526,7 @@ def textwall(exdigit: int):
                     
                         reason = reasons['TEXTWALL']
                         submission.mod.remove(mod_note=reason['note'], spam=False)
-                        reasonstr = f"Post caiu no filtro de parede de texto. Confira os critérios analizados:\n\n"
+                        reasonstr = f"Post caiu no filtro de parede de texto e por isso foi removido. Confira os critérios analizados:\n\n"
 
                         # Adicionar as condicionais e seus valores booleanos
                         conds = [f"* Tem o número minimo de paragrafos? {'sim' if paragraphs >= min_paragraphs else 'não'} (Mínmo: {min_paragraphs})", 
