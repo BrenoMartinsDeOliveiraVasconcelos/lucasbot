@@ -150,7 +150,7 @@ def runtime(exdigit: int):
                                 
 *{joke}* 
 *{config['info']['name']} {config['info']['version']} - by [{config['info']['creator']}](https://www.reddit.com/u/{config['info']['creator']}).*
-*Veja meu código fonte: [Código fonte]({config['info']['github']}).*"""  # A parte final do comentário
+*Veja meu código fonte: [Código fonte]({config['info']['github']}). Configurações para o subreddit: [Configurações]({config['info'['config_github']]})*"""  # A parte final do comentário
 
                 # Gera o dicionário que contêm os votos
                 assholecount = {}
