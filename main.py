@@ -37,6 +37,7 @@ import argparse
 parser = argparse.ArgumentParser(prog='lucasbot', description='Bot do reddit.')
 
 parser.add_argument('-p') # Senha do banco de dados
+parser.add_argument("-b", default="") # inicia imediatamente o bakcup ou não
 args = parser.parse_args()
 
 
@@ -50,6 +51,8 @@ start1 = datetime.datetime.now().timestamp()
 config = tools.config
 reasons = tools.reasons
 boot = tools.boot
+
+config_path = tools.config_path
 
 
 print(f"Bem-vindo!")
@@ -150,7 +153,7 @@ def runtime(exdigit: int):
                                 
 *{joke}* 
 *{config['info']['name']} {config['info']['version']} - by [{config['info']['creator']}](https://www.reddit.com/u/{config['info']['creator']}).*
-*Veja meu código fonte: [Código fonte]({config['info']['github']}). Configurações para o subreddit: [Configurações]({config['info'['config_github']]})*"""  # A parte final do comentário
+*Veja meu código fonte: [Código fonte]({config['info']['github']}). Configurações para o subreddit: [Configurações]({config['info']['config_github']})*"""  # A parte final do comentário
 
                 # Gera o dicionário que contêm os votos
                 assholecount = {}
@@ -407,12 +410,12 @@ def backup(exdigit: int):
             current_time = datetime.datetime.now().strftime('%H:%M')
             backup_path = config['backup']['path']
             # Só faz backup em determinados temopos
-            if current_time in config["backup"]["time"] and not already_run:
+            if (current_time in config["backup"]["time"] and not already_run) or (args.b in "SsYy" and not already_run):
                 folder = f"{backup_path}/{datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')}"  # Pega a pasta para salvar o backup
                 src_list = [".", config_path, config["list_path"]]  # O sources
                 for src in src_list:
                     shutil.copytree(src, f"{folder}/{src.split('/')[-1] if src != '.' else 'Main'}",
-                                    ignore=shutil.ignore_patterns("venv", "__", "pyenv"))  # Copia a árvore de pastas
+                                    ignore=shutil.ignore_patterns("venv", "__", "pyenv"), dirs_exist_ok=True)  # Copia a árvore de pastas
                 #tools.logger(2, bprint=False, ex="Backup realizado")
 
                 # Deletar os backups dos dias mais antigos
