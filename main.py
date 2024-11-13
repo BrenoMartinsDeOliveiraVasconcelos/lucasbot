@@ -481,7 +481,7 @@ def sub_filter(exdigit: int):
                     indx += 1
                     sublist[indx] = i.strip()
 
-                if submission.id not in sublist:  # Se o submissão não tiver na lista de subs...
+                if submission.id not in sublist and not submission.approved:  # Se o submissão não tiver na lista de subs...
                     try:
                         body = submission.selftext  # Pega o corpo do texto
                     except:
