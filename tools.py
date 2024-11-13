@@ -22,6 +22,7 @@ import os
 import time
 import mysql.connector
 import shutil
+import re
 
 try:
     config_path = open("./config_path.txt").readlines()[0].replace("\n", "")
@@ -176,3 +177,7 @@ def db_connect(args):
         exit()
 
     return sql
+
+
+def match(regex: str, text: str) -> bool:
+    return re.match(pattern=regex, string=text)

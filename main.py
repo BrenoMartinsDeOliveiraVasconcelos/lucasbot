@@ -460,7 +460,7 @@ def clearlog(exdigit: int):
 
 
 # Verificador de paredes de texto
-def textwall(exdigit: int):
+def sub_filter(exdigit: int):
     reddit.validate_on_submit = True
     while True:
         atime = datetime.datetime.now().timestamp()
@@ -542,7 +542,27 @@ def textwall(exdigit: int):
                         submission.reply(body=reasonstr + f"\n\nParágrafos: {paragraphs}\n\nFrases: {sentences}\n\nCaractéres: {chars}")
                         tools.logger(tp=4, sub_id=subid, reason="Parede de texto")
 
+
                         open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
+
+                    # Olhar os regexes
+                    if config["text_filter"]["filter_human"]:
+                        # Idade
+                        remove = False
+                        reason = f"O post foi removido pois ele não possui ?. Coloque a idade e o genero no post seguindo o padrão 'idade genero' e reposte. Coloque a idade como um número e o genero como uma dessas letras: 'H', 'M', 'NB'. Exemplo: 18 H."
+                        if not tools.match(config["text_filter"]["age_regex"], body):
+                            reason = reason.replace("?", "idade")
+                            remove = True
+                        
+                        if not tools.match(config["text_filter"]["gender_regex"], body):
+                            reason = reason.replace("?", "gênero")
+                            remove = True
+                        
+                        if remove:
+                            submission.mod.remove(mod_note="Sem idade", spam=False)
+                            submission.reply(body=reason)
+                            open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
+
             btime = datetime.datetime.now().timestamp()
             tools.log_runtime(textwall, atime, btime)
         except Exception:
@@ -729,7 +749,7 @@ if __name__ == '__main__':
 
     # Carrega as funções
     exdigits = config["exdigit"]
-    funcs = [[runtime], [backup], [clearlog], [textwall], [justification], [filter], [stat]]
+    funcs = [[runtime], [backup], [clearlog], [sub_filter], [justification], [filter], [stat]]
     
     try:
         i = 0
