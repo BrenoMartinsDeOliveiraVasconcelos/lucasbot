@@ -37,7 +37,7 @@ import argparse
 parser = argparse.ArgumentParser(prog='lucasbot', description='Bot do reddit.')
 
 parser.add_argument('-p') # Senha do banco de dados
-parser.add_argument("-b", default="") # inicia imediatamente o bakcup ou não
+parser.add_argument("-b", default="Nn") # inicia imediatamente o bakcup ou não
 args = parser.parse_args()
 
 
@@ -410,7 +410,7 @@ def backup(exdigit: int):
             current_time = datetime.datetime.now().strftime('%H:%M')
             backup_path = config['backup']['path']
             # Só faz backup em determinados temopos
-            if (current_time in config["backup"]["time"] and not already_run) or (args.b in "SsYy" and not already_run):
+            if (current_time in config["backup"]["time"] and not already_run) or args.b in "SsYy":
                 folder = f"{backup_path}/{datetime.datetime.now().strftime('%Y-%m-%d/%H-%M-%S')}"  # Pega a pasta para salvar o backup
                 src_list = [".", config_path, config["list_path"]]  # O sources
                 for src in src_list:
