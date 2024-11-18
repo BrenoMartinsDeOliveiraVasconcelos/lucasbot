@@ -22,3 +22,5 @@ teste
 __venv__
 venv
 .gemini
+.pyen
+cpvenv

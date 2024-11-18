@@ -129,6 +129,7 @@ def runtime(exdigit: int):
             # Loop para iterar nas submissões
             for submission in submissons:
                 tools.wait(exdigit=exdigit)
+                time.sleep(config["sleep_time"]["main"])
 
                 sql.commit()
                 flairchanges = []
@@ -185,6 +186,8 @@ def runtime(exdigit: int):
                         config["flairs"]["NOT_CLASSIFIED"][0])  # Seleciona a flair de não classificado aind
                     with open(f"{config['list_path']}/idlist", 'a') as f:
                         f.write(submission.id + '\n')  # Grava a nova lista de ids
+                
+                list_flairs = submission.flair.choices()
                 submission.comment_sort = 'new'  # Filtra os comentários por novos
                 submission.comments.replace_more(limit=None)
                 comments = submission.comments.list()  # E por fim pegas os comentários para calcular o julgamento
@@ -331,8 +334,25 @@ Voto | Quantidade | %
                 timeval = "\n\nÚltima análise feita em: " \
                           f"{datetime.datetime.now().strftime('%d/%m/%Y às %H:%M')}\n\n "  # Última analise...
                 etxt = votxt + timeval + etxt  # Junta várias partes do corpo do comentário
+
+                current_flair = submission.link_flair_template_id
+                try:
+                    selected_flair = config["flairs"][key][0]
+                except KeyError:
+                    selected_flair = ""
+                not_avaliable_flair = config["flairs"]["NOT_AVALIABLE"][0]
+                inconclusive_flair = config["flairs"]["INCONCLUSIVE"][0]
+
+                changed_flair = True
+
                 if percent >= 0.5 and total > 0:
-                    submission.flair.select(config["flairs"][key][0])  # Seleciona a flair se tiver uma maioria.
+
+                    # Verifica se a flair já não foi aplicada. Só aplica se for diferente
+                    if current_flair != selected_flair and selected_flair != "":
+                        submission.flair.select(selected_flair)  # Seleciona a flair se tiver uma 
+                    else:
+                        changed_flair = False
+                        
                     if key in ["FANFIC", "OT"]:  # Se o voto mais top tiver em um desses dois ai...
                         if not submission.approved:
                             removes = open(f"{config['list_path']}/rid", "r").readlines()  # Checa a lista de remoções
@@ -352,16 +372,27 @@ Voto | Quantidade | %
                                 tools.logger(tp=4, sub_id=submission.id, reason="VIolação")
                                 open(f"{config['list_path']}/rid", "a").write(f"{submission.id}\n")
                         else:
-                            submission.flair.select(config["flairs"]["NOT_AVALIABLE"][0])
-                            ftxt = f"### " \
-                                    f"Post marcado como FANFIC/OT mas aprovado pela moderação"
+                            if current_flair != not_avaliable_flair:
+                                submission.flair.select(not_avaliable_flair)
+                                ftxt = f"### " \
+                                        f"Post marcado como FANFIC/OT mas aprovado pela moderação"
+                            else:
+                                changed_flair = False
                 # Se a porcaentagem está fora da média, seleciona a flair de fora da média
                 elif percent < 0.5 and total > 0:
-                    submission.flair.select(config["flairs"]["INCONCLUSIVE"][0])
+                    if current_flair != inconclusive_flair:
+                        submission.flair.select(inconclusive_flair)
+                    else:
+                        changed_flair = False
                 elif total == 0:  # Se o total for exatamente zero, a de não disponível
-                    submission.flair.select(config["flairs"]["NOT_AVALIABLE"][0])
-                flairchanges += f"\n* Flair de https://www.reddit.com/{submission.id} é '{judgment}'"
-                tools.logger(2, ex=f"Flair editada em {submission.id}")
+                    if current_flair != not_avaliable_flair:
+                        submission.flair.select(config["flairs"]["NOT_AVALIABLE"][0])
+                    else:
+                        changed_flair = False
+
+                if changed_flair:
+                    flairchanges += f"\n* Flair de https://www.reddit.com/{submission.id} é '{judgment}'"
+                    tools.logger(2, ex=f"Flair editada em {submission.id}")
 
                 # Adiciona a justificativa no corpo do bot
                 ebotxt = botxt
@@ -387,15 +418,18 @@ Voto | Quantidade | %
                         bd = com.body.split("\n")
                         fullbody = ftxt + ebotxt + etxt  # Cola as partes do comentário
                         if ">!NOEDIT!<" not in bd:  # Se não tiver ">!NOEDIT!<"
+
                             com.edit(
                                 body=fullbody)  # Edita o comentário do placar
                             tools.logger(1, sub_id=submission.id)
                             edits += f"\n* Comentário do bot editado em https://www.reddit.com/{submission.id}\n"
+
                 ftxt = f"# Veredito atual:" \
                        f" Não disponível \n\nÚltima atualização feita em: " \
                        f"{datetime.datetime.now().strftime('%d/%m/%Y às %H:%M')}\n\n "
 
             btime = datetime.datetime.now().timestamp()
+            tools.logger(f"Runtime executou em {btime-atime} segundos.")
             tools.log_runtime(runtime, atime, btime)  # Coloca o runtime total da função
         except Exception as e:
             tools.logger(5, ex=traceback.format_exc())
@@ -448,13 +482,17 @@ def backup(exdigit: int):
 
 
 # Limpador de logs
-def clearlog(exdigit: int):
+def clearlog(exdigit: int, non_automatic=False):
     while True:
         current = f"{datetime.datetime.now().hour}:{datetime.datetime.now().minute}"
 
         if current in config["clear_log"]:
             open(f'{config["list_path"]}/log', "w+").write("")
             time.sleep(60)
+
+        if non_automatic:
+            open(f'{config["list_path"]}/log', "w+").write("")
+            break
 
         time.sleep(0.1)
 
@@ -481,6 +519,36 @@ def sub_filter(exdigit: int):
                     indx += 1
                     sublist[indx] = i.strip()
 
+                
+                keywords = tools.getfiletext(open(f"{config['list_path']}/keywords.txt", "r"))  # Palavras de filtro
+
+                subcount += 1
+
+                sublist_com = tools.getfiletext(open(f"{config['list_path']}/cid", "r"))  # Pega a lista de remoções
+                indx = -1
+
+                submission.comment_sort = 'new'  # Filtra os comentários por novos
+                submission.comments.replace_more(limit=None)
+                comments = submission.comments.list()
+
+                # Iteração pela lista de comentários
+                for com in comments:
+                    time.sleep(config["sleep_time"]["filter_sub"])
+                    if com.id not in sublist_com:
+                        for x in com.body.lower().replace("\n", " ").replace("\n\n", " ").split(" "):
+                            for letra in x:
+                                replace = config["replace_list"]
+                                if letra in replace:
+                                    x = x.replace(letra, '')
+                            if x in keywords:
+                                # Se o filtro pegar, o comentário vai ser denunciado
+                                com.report(f"Filtro detectou: {x}")
+
+                                tools.logger(ex=x, sub_id=submission.id, com_id=com.id, tp=6)
+
+                        open(f"{config['list_path']}/cid", "a").write(f"{com.id}\n")
+                
+                time.sleep(config["sleep_time"]["filter_sub"])
                 if submission.id not in sublist and not submission.approved:  # Se o submissão não tiver na lista de subs...
                     try:
                         body = submission.selftext  # Pega o corpo do texto
@@ -655,53 +723,6 @@ def justification(exdigit: int):
             tools.logger(tp=5, ex=traceback.format_exc())
 
 
-# Filtro para reportar comentários potencialmente perigosos
-def filter(exdigit: int):
-    reddit.validate_on_submit = True
-    while True:
-        atime = datetime.datetime.now().timestamp()
-        try:
-            subcount = 0
-            submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
-
-            for submission in submissons:
-                tools.wait(exdigit=exdigit)
-
-                keywords = tools.getfiletext(open(f"{config['list_path']}/keywords.txt", "r"))  # Palavras de filtro
-
-                time.sleep(config["sleep_time"]["filter_sub"])
-                subcount += 1
-
-                sublist = tools.getfiletext(open(f"{config['list_path']}/cid", "r"))  # Pega a lista de remoções
-                indx = -1
-
-                submission.comment_sort = 'new'  # Filtra os comentários por novos
-                submission.comments.replace_more(limit=None)
-                comments = submission.comments.list()
-
-                # Iteração pela lista de comentários
-                for com in comments:
-                    time.sleep(config["sleep_time"]["filter_com"])
-                    if com.id not in sublist:
-                        for x in com.body.lower().replace("\n", " ").replace("\n\n", " ").split(" "):
-                            for letra in x:
-                                replace = config["replace_list"]
-                                if letra in replace:
-                                    x = x.replace(letra, '')
-                            if x in keywords:
-                                # Se o filtro pegar, o comentário vai ser denunciado
-                                com.report(f"Filtro detectou: {x}")
-
-                                tools.logger(ex=x, sub_id=submission.id, com_id=com.id, tp=6)
-
-                        open(f"{config['list_path']}/cid", "a").write(f"{com.id}\n")
-
-            btime = datetime.datetime.now().timestamp()
-            tools.log_runtime(filter, atime, btime)
-        except Exception:
-            tools.logger(tp=5, ex=traceback.format_exc())
-
-
 def stat(exdigit: int):  # Estatisticas do subreddit
     while True:
         sql = tools.db_connect(args=args)
@@ -750,7 +771,7 @@ if __name__ == '__main__':
 
     # Carrega as funções
     exdigits = config["exdigit"]
-    funcs = [[runtime], [backup], [clearlog], [sub_filter], [justification], [filter], [stat]]
+    funcs = [[runtime], [backup], [clearlog], [sub_filter], [justification], [stat]]
     
     try:
         i = 0
@@ -946,6 +967,8 @@ if __name__ == '__main__':
                         print(line, end="")
                 elif inp[0] == "CLEAR":
                     tools.clear_console()
+                elif inp[0] == "CLEARLOG":
+                    clearlog(0, non_automatic=True)
                 elif inp[0] == "":
                     print("Nenhum comando a executar.")
                 else:
@@ -958,4 +981,6 @@ if __name__ == '__main__':
     # Loop while que acontece em caso de EOFError ou qualquer outro erro que termine o loop de comandos.
     while True:
         time.sleep(0.1)
+else:
+    print("Esse programa não pode ser usado como biblioteca. Rode diretamente.")
         
