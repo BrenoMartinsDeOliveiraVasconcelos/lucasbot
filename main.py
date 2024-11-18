@@ -128,7 +128,7 @@ def runtime(exdigit: int):
 
             # Loop para iterar nas submissões
             for submission in submissons:
-                tools.wait(exdigit=exdigit)
+                #tools.wait(exdigit=exdigit)
                 time.sleep(config["sleep_time"]["main"])
 
                 sql.commit()
@@ -187,7 +187,6 @@ def runtime(exdigit: int):
                     with open(f"{config['list_path']}/idlist", 'a') as f:
                         f.write(submission.id + '\n')  # Grava a nova lista de ids
                 
-                list_flairs = submission.flair.choices()
                 submission.comment_sort = 'new'  # Filtra os comentários por novos
                 submission.comments.replace_more(limit=None)
                 comments = submission.comments.list()  # E por fim pegas os comentários para calcular o julgamento
@@ -506,7 +505,7 @@ def sub_filter(exdigit: int):
             subcount = 0
             submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
             for submission in submissons:
-                tools.wait(exdigit=exdigit)
+                # tools.wait(exdigit=exdigit)
                         
                 time.sleep(config["sleep_time"]["textwall"])
                 subcount += 1
@@ -650,8 +649,7 @@ def justification(exdigit: int):
             subcount = 0
             submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
             for submission in submissons:
-                tools.wait(exdigit=exdigit)
-
+                # tools.wait(exdigit=exdigit)
                 reasonings = json.load(open(f"{config['list_path']}/reasoning/reasonings.json", "r"))
                 now = datetime.datetime.now().timestamp()
                 time.sleep(config["sleep_time"]["justification"])
@@ -695,18 +693,7 @@ def justification(exdigit: int):
                 # Para fins de evitar flood de remoções, verifica se o id não está na lista de ignorados
                 igl = tools.getfiletext(open(f"{config['list_path']}/ignore_list", "r"))
 
-                if not didOPans and subid not in igl:
-                    rid = tools.getfiletext(open(f"{config['list_path']}/rid", "r"))  # Abrir a lista de remoções
-                    # Se o timestamp de criação - timestamp de agora for maior que 1 hora...
-                    if now - submission.created_utc >= 3600:
-                        if subid not in rid:
-                            removal = reasons['NO_REASON']
-                            if not boot:  # Se não tiver aado de inicialzar..
-                                submission.mod.remove(mod_note=removal['note'], spam=False)
-                                submission.reply(body=removal['body'])
-                            tools.logger(tp=4, sub_id=subid, reason="Sem justificativa")
-                            open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
-                else:
+                if didOPans:
                     if subid in igl:
                         reason = "Post postado antes de precisar justificar."
                     open(f"{config['list_path']}/jid", "a").write(f"{subid}\n")
@@ -729,7 +716,7 @@ def stat(exdigit: int):  # Estatisticas do subreddit
 
         cursor = sql.cursor()
         try:
-            tools.wait(exdigit=exdigit)
+            # tools.wait(exdigit=exdigit)
 
             add = False
             subr = reddit.subreddit(config["subreddit"])
