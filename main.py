@@ -314,7 +314,7 @@ Voto | Quantidade | %
                 # Adicionar os comentários ignorados
                 votxt += f"\n\n**Comentários inválidos: {invalid}**\n"
                 if submission.approved:
-                    votxt += "\n*O post foi verificado e aprovado, portanto votos FANFIC e OT são desconsiderados*.\n"
+                    votxt += "\n*O post foi verificado e aprovado pela moderação, portanto votos FANFIC e OT são desconsiderados*.\n"
 
                 # Pega a porcentagem de votos babacas e votos não babacas
                 if total_ac >= 1:
@@ -415,7 +415,7 @@ def backup(exdigit: int):
                 src_list = [".", config_path, config["list_path"]]  # O sources
                 for src in src_list:
                     shutil.copytree(src, f"{folder}/{src.split('/')[-1] if src != '.' else 'Main'}",
-                                    ignore=shutil.ignore_patterns("venv", "__", "pyenv"), dirs_exist_ok=True)  # Copia a árvore de pastas
+                                    ignore=shutil.ignore_patterns("venv", "__", "pyenv", "Backups"), dirs_exist_ok=True)  # Copia a árvore de pastas
                 #tools.logger(2, bprint=False, ex="Backup realizado")
 
                 # Deletar os backups dos dias mais antigos
@@ -529,7 +529,7 @@ def sub_filter(exdigit: int):
                     
                         reason = reasons['TEXTWALL']
                         submission.mod.remove(mod_note=reason['note'], spam=False)
-                        reasonstr = f"Post caiu no filtro de parede de texto e por isso foi removido. Confira os critérios analizados:\n\n"
+                        reasonstr = f"Post caiu no filtro de parede de texto e por isso foi removido. Arrume e reposte. Confira os critérios analizados:\n\n"
 
                         # Adicionar as condicionais e seus valores booleanos
                         conds = [f"* Tem o número minimo de paragrafos? {'sim' if paragraphs >= min_paragraphs else 'não'} (Mínmo: {min_paragraphs})", 
@@ -549,22 +549,23 @@ def sub_filter(exdigit: int):
                     if config["text_filter"]["filter_human"]:
                         # Idade
                         remove = False
-                        reason = f"O post foi removido pois ele não possui ?. Coloque a idade e o genero no post seguindo o padrão 'idade genero' e reposte. Coloque a idade como um número e o genero como uma dessas letras: 'H', 'M', 'NB'. Exemplo: 18 H."
-                        if not tools.match(config["text_filter"]["age_regex"], body):
-                            reason = reason.replace("?", "idade")
+                        reason_raw = f"O post foi removido pois ele não possui ?. Coloque a idade e o genero no post seguindo o padrão 'idade genero' e reposte. Coloque a idade como um número e o genero como uma dessas letras: 'H', 'M', 'NB'. Exemplo: 18 H."
+                        reason = ""
+                        if not tools.match("age", body):
+                            reason = reason_raw.replace("?", "idade")
                             remove = True
                         
-                        if not tools.match(config["text_filter"]["gender_regex"], body):
-                            reason = reason.replace("?", "gênero")
+                        if not tools.match("gender", body):
+                            reason = reason_raw.replace("?", "gênero")
                             remove = True
-                        
+
                         if remove:
                             submission.mod.remove(mod_note="Sem idade", spam=False)
                             submission.reply(body=reason)
                             open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
 
             btime = datetime.datetime.now().timestamp()
-            tools.log_runtime(textwall, atime, btime)
+            tools.log_runtime(sub_filter, atime, btime)
         except Exception:
             tools.logger(tp=5, ex=traceback.format_exc())
 

@@ -114,23 +114,13 @@ def log_runtime(func, a: float, b: float):
 
 
 def getfiletext(file: io.TextIOWrapper) -> list:
-    '''
-    Consegue o texto de um arquivo e retorna cada linha formatada numa lista
-    :param file: Classe da função open()
-    :return: Lista de strings
-    '''
-
-    indx = -1
-    text = file.readlines()
-    for line in text:
-        indx += 1
-        text[indx] = line.strip()
-
-    indx = 0
-    for line in text:
-        text[indx] = line.removesuffix("\n")
-        indx = 0
-
+    """
+    Gets text from a file and returns each formatted line in a list
+    :param file: Open file object
+    :return: List of strings
+    """
+    # Read all lines at once and process them
+    text = [line.strip().removesuffix('\n') for line in file.readlines()]
     return text
 
 
@@ -179,5 +169,31 @@ def db_connect(args):
     return sql
 
 
-def match(regex: str, text: str) -> bool:
-    return re.match(pattern=regex, string=text)
+def match(regex_type: str, text: str) -> bool:
+    """
+    Match text against predefined regex patterns
+    :param regex_type: Type of regex to use ('age' or 'gender')
+    :param text: Text to match against
+    :return: Boolean indicating if there's a match
+    """
+    
+    with open(f"{config_path}/regexes.txt", "r", encoding='utf-8') as f:
+        regexes = getfiletext(f)
+    
+    if regex_type == "age":
+        regx = regexes[0]
+    elif regex_type == "gender":
+        regx = regexes[1]
+    else:
+        raise ValueError(f"Unknown regex type: {regex_type}")
+    
+    # Use re.search instead of re.match to find pattern anywhere in string
+    result = re.search(regx, text, flags=re.M|re.I)
+    if result is not None:
+        result = True
+    else:
+        result = False
+
+
+    return result
+
