@@ -25,40 +25,24 @@ import shutil
 import re
 
 try:
-    config_path = open("./config_path.txt").readlines()[0].replace("\n", "")
-except FileNotFoundError:
-    try:
-        print("Arquivo 'config_path.txt' não encontrado. Será criado o arquivo, por favor edite colocando o caminho do arquivo de configuração.")
-        open("./config_path.txt", "w+").write("")
-        exit(-1)
-    except PermissionError:
-        print("Permissão negada ao criar o arquivo.")
-        exit(-1)
-except PermissionError:
-    print("Permissão de leitura ao arquivo config_path.txt negada! Não é possível prosseguir")
+    config_path = open("./config_path.txt").readlines()[0].strip()
+    print(f"Config path lido: {config_path}")
+except Exception as e:
+    print(f"Erro ao ler config_path.txt: {e}")
     exit(-1)
 
 try:
-    config = json.load(open(f'{config_path}/config.json', 'r'))  # Configurações do bot
-    reasons = json.load(open(f"{config['config']}/reasons.json", "r"))  # Motivos para punição automatizada
-    boot = True
-except FileNotFoundError:
-    print(f"Arquivos de configuração não encontrados... Eles realmente existem? Criando com base no modelo! Edite os arquivo em {config_path}!")
-    models = "./__MODElS__"
-
-    if os.path.exists(models):
-        try:
-            for file in os.listdir(models):
-                shutil.copy(os.path.join(models, file), config_path)
-        except PermissionError:
-            print("Permissão negada! Abortando.")
-            exit(-1)
-    else:
-        print("Pasta de modelos não encontrada não encontrada! Abortando.")
+    if not os.path.exists(f"{config_path}/config.json"):
+        print(f"Arquivo config.json não encontrado no caminho {config_path}.")
         exit(-1)
-except PermissionError:
-    print("Permissão negada ao ler os arquivos de configuração. Não será possível prosseguir.")
+    config = json.load(open(f"{config_path}/config.json", "r"))
+    reasons = json.load(open(f"{config_path}/reasons.json", "r"))
+    boot = True
+    print("Configurações carregadas com sucesso!")
+except Exception as e:
+    print(f"Erro ao carregar configurações: {e}")
     exit(-1)
+
 
 
 # Função que escreve no arquivo de log
@@ -79,7 +63,8 @@ def logger(tp, sub_id="", ex="", num="", reason="", bprint=False, com_id=""):
     elif tp == 2 or tp == 5 or tp == 7:
         msg = f"{ex}"
         if tp == 5:
-            print(f"ERRO ({current_time}): {ex}")
+            if bprint:
+                print(f"ERRO ({current_time}): {ex}")
 
             time.sleep(1)
         if bprint:
@@ -196,4 +181,8 @@ def match(regex_type: str, text: str) -> bool:
 
 
     return result
+
+
+def load_json_f(path: str) -> dict:
+    return json.load(open(path, "r"))
 
