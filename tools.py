@@ -182,7 +182,3 @@ def match(regex_type: str, text: str) -> bool:
 
     return result
 
-
-def load_json_f(path: str) -> dict:
-    return json.load(open(path, "r"))
-

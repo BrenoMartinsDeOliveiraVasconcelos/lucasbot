@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 
-first_run = False
 
 def begin(config: dict) -> None:
     '''
@@ -37,14 +36,12 @@ def begin(config: dict) -> None:
         emptytxts = ["idlist", "log", "rid", "aid", "aarid", "jid", "cid", "keywords.txt", "pids"]
         for i in emptytxts:
             if not os.path.exists(f"{config['list_path']}/{i}"):
-                first_run = True
                 open(f"{config['list_path']}/{i}", "w+")
 
         # Pastas vazias
         folders = ["runtime_info"]
         for i in folders:
             if not os.path.exists(f"{config['list_path']}/{i}"):
-                first_run = True
                 os.mkdir(f"{config['list_path']}/{i}")
     except PermissionError:
         print("O diretóŕio em list_path é inacessível para o usuário executando o script. Edite o arquivo config.json ou conceda as devidas permissões.")
