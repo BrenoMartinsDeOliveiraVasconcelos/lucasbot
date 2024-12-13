@@ -139,6 +139,7 @@ def runtime():
                     adds = []
 
                     subcount += 1
+                    tools.logger(tp=2, ex=f"Submissão atual: {subcount}")
                     timestmp = datetime.datetime.now().timestamp() - config[
                         "break_time"]  # Calcula o quaõ velho o post tem que ser para ser ignorado
 
@@ -520,7 +521,14 @@ def sub_filter():
             submissons = reddit.subreddit(config["subreddit"]).new(limit=int(config["submissions"]))  # Pega subs
             tmr_exceptions = 0
             for submission in submissons:
+                is_removed = False
                 try:
+                    timestmp = datetime.datetime.now().timestamp() - config[
+                        "break_time"]  # Calcula o quaõ velho o post tem que ser para ser ignorado
+
+                    if submission.created_utc <= timestmp:
+                        break  # quebra o loop se o tempo de agora - x dias for maior que o tempo que criado.
+
                     time.sleep(config["sleep_time"]["textwall"])
                     subcount += 1
                     subid = submission.id
@@ -562,7 +570,8 @@ def sub_filter():
                             open(f"{config['list_path']}/cid", "a").write(f"{com.id}\n")
                     
                     time.sleep(config["sleep_time"]["filter_sub"])
-                    if submission.id not in sublist and not submission.approved:  # Se o submissão não tiver na lista de subs...
+                    if subid not in sublist and not submission.approved:  # Se o submissão não tiver na lista de subs...
+                        remove_replies = [] # Todos os comentários de remoção do bot
                         try:
                             body = submission.selftext  # Pega o corpo do texto
                         except:
@@ -597,6 +606,8 @@ def sub_filter():
                             # Se não, é zero!
                             paragraphs = 0
                             sentences = 0
+                        
+                        owner = config["info"]["owner"]
 
                         min_paragraphs = config["text_filter"]["min_paragraphs"]
                         min_sentences = config["text_filter"]["min_sentences"]
@@ -620,11 +631,11 @@ def sub_filter():
                             for x in range(0, len(conds)):
                                 reasonstr += conds[x]+"\n"
 
-                            submission.reply(body=reasonstr + f"\n\nParágrafos: {paragraphs}\n\nFrases: {sentences}\n\nCaractéres: {chars}")
+                            submission.reply(body=reasonstr + f"\n\nParágrafos: {paragraphs}\n\nFrases: {sentences}\n\nCaractéres: {chars}\n\nCaso tenha sido um erro, fale com a [moderação](https://www.reddit.com/message/compose?to=r%2F{config['subreddit']}).\n\n>!NOEDIT!<.")
                             tools.logger(tp=4, sub_id=subid, reason="Parede de texto")
 
 
-                            open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
+                            open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")      
 
                         # Olhar os regexes
                         if config["text_filter"]["filter_human"]:
@@ -640,10 +651,15 @@ def sub_filter():
                                 reason = reason_raw.replace("?", "gênero")
                                 remove = True
 
+                            if tools.match("phone", body):
+                                remove = True
+                                reason = f"Sua publicação foi removida pois ela possui um número de telefone, logo pode ser spam ou uma tentativa de doxxing."
+
                             if remove:
                                 submission.mod.remove(mod_note="Sem idade", spam=False)
-                                submission.reply(body=reason)
+                                submission.reply(body=reason+f"\n\nCaso tenha sido um erro, fale com a [moderação](https://www.reddit.com/message/compose?to=r%2F{config['subreddit']}).\n\n>!NOEDIT!<")
                                 open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
+
                     tmr_exceptions = 0
                 except (prawcore.exceptions.TooManyRequests, praw.exceptions.RedditAPIException):
                     sleep_time = 10 + tmr_exceptions # Tempo de espera total
@@ -672,8 +688,14 @@ def justification():
             tmr_exceptions = 0
             for submission in submissons:
                 try:
+                    timestmp = datetime.datetime.now().timestamp() - config[
+                        "break_time"]  # Calcula o quaõ velho o post tem que ser para ser ignorado
+
+                    if submission.created_utc <= timestmp:
+                        break  # quebra o loop se o tempo de agora - x dias for maior que o tempo que criado.
+                    
                     reasonings = json.load(open(f"{config['list_path']}/reasoning/reasonings.json", "r"))
-                    now = datetime.datetime.now().timestamp()
+
                     time.sleep(config["sleep_time"]["justification"])
                     subcount += 1
                     subid = submission.id
@@ -785,7 +807,7 @@ if __name__ == '__main__':
     prep.begin(config)
 
     # Carrega as funções
-    funcs = [[runtime], [backup], [clearlog], [sub_filter], [justification], [stat]]
+    funcs = [[runtime], [sub_filter], [justification], [backup], [clearlog], [stat]]
 
     # Inicializa os processos
     indx = 0

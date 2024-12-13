@@ -169,11 +169,22 @@ def match(regex_type: str, text: str) -> bool:
         regx = regexes[0]
     elif regex_type == "gender":
         regx = regexes[1]
+    elif regex_type == "phone":
+        regx = regexes[2]
     else:
         raise ValueError(f"Unknown regex type: {regex_type}")
     
     # Use re.search instead of re.match to find pattern anywhere in string
     result = re.search(regx, text, flags=re.M|re.I)
+    
+    if regex_type == "phone":
+        split_res = result.group().split(" ")
+        for i in split_res:
+            if len(i) >= 5:
+                return True
+            
+        return False
+
     if result is not None:
         result = True
     else:
