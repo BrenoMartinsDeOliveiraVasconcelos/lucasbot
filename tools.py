@@ -21,8 +21,8 @@ import json
 import os
 import time
 import mysql.connector
-import shutil
 import re
+from typing import Dict
 
 try:
     config_path = open("./config_path.txt").readlines()[0].strip()
@@ -43,6 +43,7 @@ except Exception as e:
     print(f"Erro ao carregar configurações: {e}")
     exit(-1)
 
+REGEXES: Dict[str, str] = {}
 
 
 # Função que escreve no arquivo de log
@@ -154,42 +155,41 @@ def db_connect(args):
     return sql
 
 
+def load_regexes():
+    global REGEXES
+    if not REGEXES:
+        with open(f"{config_path}/regexes.txt", "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            REGEXES = {
+                "age": lines[0].strip(),
+                "phone": lines[2].strip(),
+                "email": lines[3].strip(),
+                "cpf": lines[4].strip(),
+                "url": lines[5].strip()
+            }
+
+
 def match(regex_type: str, text: str) -> bool:
     """
-    Match text against predefined regex patterns
-    :param regex_type: Type of regex to use ('age' or 'gender')
-    :param text: Text to match against
-    :return: Boolean indicating if there's a match
+    Match text against predefined regex patterns.
+    :param regex_type: Type of regex to use ('age', 'gender', or 'phone')
+    :param text: Text to match against.
+    :return: Boolean indicating if there's a match.
     """
-    
-    with open(f"{config_path}/regexes.txt", "r", encoding='utf-8') as f:
-        regexes = getfiletext(f)
-    
-    if regex_type == "age":
-        regx = regexes[0]
-    elif regex_type == "gender":
-        regx = regexes[1]
-    elif regex_type == "phone":
-        regx = regexes[2]
-    else:
-        raise ValueError(f"Unknown regex type: {regex_type}")
-    
-    # Use re.search instead of re.match to find pattern anywhere in string
-    result = re.search(regx, text, flags=re.M|re.I)
-    
+    load_regexes()
+
+    if regex_type not in REGEXES:
+        logger(tp=2, ex=f"Regex type {regex_type} not found.")
+        return True
+
+    regx = REGEXES[regex_type]
+    result = re.search(regx, text, flags=re.M | re.IGNORECASE)
+
     if regex_type == "phone":
-        split_res = result.group().split(" ")
-        for i in split_res:
-            if len(i) >= 5:
-                return True
-            
+        if result:
+            split_res = result.group().split()
+            return any(len(i) >= 5 for i in split_res)
         return False
 
-    if result is not None:
-        result = True
-    else:
-        result = False
-
-
-    return result
+    return result is not None
 

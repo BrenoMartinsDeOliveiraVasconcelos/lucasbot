@@ -655,6 +655,18 @@ def sub_filter():
                                 remove = True
                                 reason = f"Sua publicação foi removida pois ela possui um número de telefone, logo pode ser spam ou uma tentativa de doxxing."
 
+                            if tools.match("email", body):
+                                remove = True
+                                reason = f"Sua publicação foi removida pois ela possui um email, logo pode ser spam ou uma tentativa de doxxing."
+
+                            if tools.match("cpf", body):
+                                remove = True
+                                reason = f"Sua publicação foi removida pois ela possui um CPF."
+
+                            if tools.match("url", body):
+                                remove = True
+                                reason = f"Sua publicação foi removida pois ela possui um link. É proibido qualquer spam no subreddit."
+
                             if remove:
                                 submission.mod.remove(mod_note="Sem idade", spam=False)
                                 submission.reply(body=reason+f"\n\nCaso tenha sido um erro, fale com a [moderação](https://www.reddit.com/message/compose?to=r%2F{config['subreddit']}).\n\n>!NOEDIT!<")
