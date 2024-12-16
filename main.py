@@ -672,6 +672,25 @@ def sub_filter():
                                 submission.reply(body=reason+f"\n\nCaso tenha sido um erro, fale com a [moderação](https://www.reddit.com/message/compose?to=r%2F{config['subreddit']}).\n\n>!NOEDIT!<")
                                 open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
 
+                        karma_filter = config["text_filter"]["karma_checker"]
+
+                        if karma_filter["enabled"]:
+                            karma = submission.author.comment_karma + submission.author.link_karma
+                            if karma < karma_filter["min"]:
+                                sub_created = submission.created_utc
+                                now = datetime.datetime.now().timestamp()
+
+                                if now - sub_created < karma_filter["timeout"]:
+                                    submission.mod.remove(mod_note="Sem karma", spam=False)
+                                    submission.reply(body=f"Seu post foi removido pois você não possui karma suficiente para postar nesse subreddit. Karma atual: {karma}/{karma_filter['min']}.\n\n>!NOEDIT!<")
+                                else:
+                                    if karma <= karma_filter["after_timeout_report_when"]:
+                                        # Reportar
+                                        submission.mod.report(
+                                            mod_note=f"Post suspeito. Usuário possui {karma} de karma."
+                                        )
+
+                                open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
                     tmr_exceptions = 0
                 except (prawcore.exceptions.TooManyRequests, praw.exceptions.RedditAPIException):
                     sleep_time = 10 + tmr_exceptions # Tempo de espera total

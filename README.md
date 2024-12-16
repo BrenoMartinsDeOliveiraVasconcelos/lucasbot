@@ -10,7 +10,7 @@ Lucasbot é um bot feito para o subreddit r/EuSouOBabaca utilizando `python` e a
 | Bibliotecas|`praw, psutil, mysql-connector-python`  |
 | RAM|768 mb  |
 | CPU|1 núcleo  |
-| Disco|600 mb livres |
+| Disco|1 gb livre |
 
 ## Como rodar
 Depois de instalar as bibliotecas necessárias usando `python3 -m pip install -r requirements.txt`, basta configurar o bot usando o modelo em MODELOS e depois `python3 main.py -p "Senha do banco de dados"`.
