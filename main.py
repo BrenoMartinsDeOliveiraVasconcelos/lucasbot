@@ -682,7 +682,7 @@ def sub_filter():
 
                                 if now - sub_created < karma_filter["timeout"]:
                                     submission.mod.remove(mod_note="Sem karma", spam=False)
-                                    submission.reply(body=f"Seu post foi removido pois você não possui karma suficiente para postar nesse subreddit. Karma atual: {karma}/{karma_filter['min']}.\n\n>!NOEDIT!<")
+                                    submission.reply(body=f"Seu post foi removido pois você não possui karma suficiente para postar nesse subreddit. Caso seu post não viole as regras, fale com a [moderação](https://www.reddit.com/message/compose?to=r%2F{config['subreddit']}).\n\n>!NOEDIT!<")
                                 else:
                                     if karma <= karma_filter["after_timeout_report_when"]:
                                         # Reportar
@@ -851,6 +851,10 @@ if __name__ == '__main__':
     index = -1
     # E os bota para rodar de segundo plano
     func_total = 0  # total de milisegundos na inicialização da função
+
+    # Antes de começar, printa o PID da thread principal
+    print(f"main: {pids[0]}")
+
     for i in processes:
         func_start = datetime.datetime.now().timestamp()  #ms da função
 
@@ -900,7 +904,7 @@ if __name__ == '__main__':
                     for i in processes:
                         i.terminate()
 
-                    os.system(f"{config['python']} ./main.py")
+                    os.system(f"{config['python']} ./main.py -p {args.p}")
                     break
                 elif inp[0] == "MEMORY":  # Calcula a memória utilizada pelos processos
                     while True:
