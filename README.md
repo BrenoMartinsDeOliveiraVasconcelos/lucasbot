@@ -21,6 +21,7 @@ Depois de instalar as bibliotecas necessárias usando `python3 -m pip install -r
 |Comando|Output  |
 |--|--|
 | R | Recarrega valores na memória |
+| RESTART | Reinicia o programa |
 | E| Termina o programa |
 | LEAVE| Sai do input de comandos. Pode ser útil para manter a segurança. |
 | MEMORY| Calcula a memória e o CPU usado em cada processo. ENTER para atualizar, digite qualquer coisa e aperte ENTER para sair do loop. |
