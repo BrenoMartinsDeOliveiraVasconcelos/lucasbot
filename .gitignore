@@ -24,3 +24,5 @@ venv
 .gemini
 .pyen
 cpvenv
+.vs
+.vscode

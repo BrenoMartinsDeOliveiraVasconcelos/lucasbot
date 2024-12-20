@@ -156,7 +156,7 @@ def runtime():
                     etxt = f"""
                                     
 *{joke}* 
-*{config['info']['name']} {config['info']['version']} - by [{config['info']['creator']}](https://www.reddit.com/u/{config['info']['creator']}).*
+*{config['info']['name']} {config['info']['version']} - by JakeWisconsin.*
 *Veja meu código fonte: [Código fonte]({config['info']['github']}). Configurações para o subreddit: [Configurações]({config['info']['config_github']})*"""  # A parte final do comentário
 
                     # Gera o dicionário que contêm os votos
@@ -357,22 +357,27 @@ Voto | Quantidade | %
                             
                         if key in ["FANFIC", "OT"]:  # Se o voto mais top tiver em um desses dois ai...
                             if not submission.approved:
-                                removes = open(f"{config['list_path']}/rid", "r").readlines()  # Checa a lista de remoções
+                                # Remover se o numero de votos for maior que o numero especificado no config
+                                if total >= config["remove_votes"]:
+                                    removes = open(f"{config['list_path']}/rid", "r").readlines()  # Checa a lista de remoções
 
-                                indx = -1
-                                for sub in removes:
-                                    indx += 1
-                                    removes[indx] = sub.strip()
+                                    indx = -1
+                                    for sub in removes:
+                                        indx += 1
+                                        removes[indx] = sub.strip()
 
-                                if submission.id not in removes and total > 3:  # Se a submissão não tiver na lista de remoção e o total for maior que 1 (a lista ainda nn foi gravada)
+                                    # if submission.id not in removes and total > 3:  # Se a submissão não tiver na lista de remoção e o total for maior que 1 (a lista ainda nn foi gravada)
 
-                                    # Remove a submissão e adiciona lista de remoções
+                                    # Reporta a submissão e adiciona lista de remoções
                                     
                                     reason = reasons["FAKE_OT"]
-                                    submission.mod.remove(mod_note=f"{reason['note']}", spam=False)
+                                    #submission.mod.remove(mod_note=f"{reason['note']}", spam=False)
+                                    submission.report("Post suspeito de ser FANFIC/OT.")
                                     submission.reply(body=f"{reason['body']}")
                                     tools.logger(tp=4, sub_id=submission.id, reason="VIolação")
                                     open(f"{config['list_path']}/rid", "a").write(f"{submission.id}\n")
+                                else:
+                                    submission.flair.select(config["flairs"]["NOT_AVALIABLE"][0])
                             else:
                                 if current_flair != not_avaliable_flair:
                                     submission.flair.select(not_avaliable_flair)
@@ -682,7 +687,7 @@ def sub_filter():
 
                                 if now - sub_created < karma_filter["timeout"]:
                                     submission.mod.remove(mod_note="Sem karma", spam=False)
-                                    submission.reply(body=f"Seu post foi removido pois você não possui karma suficiente para postar nesse subreddit. Caso seu post não viole as regras, fale com a [moderação](https://www.reddit.com/message/compose?to=r%2F{config['subreddit']}).\n\n>!NOEDIT!<")
+                                    submission.reply(body=f"Seu post foi removido pois você não possui karma suficiente para postar nesse subreddit. Envie um modmail para a [moderação](https://www.reddit.com/message/compose?to=r%2F{config['subreddit']}) para revisar o seu post.\n\n>!NOEDIT!<")
                                 else:
                                     if karma <= karma_filter["after_timeout_report_when"]:
                                         # Reportar
@@ -1040,7 +1045,7 @@ if __name__ == '__main__':
 
     # Loop while que acontece em caso de EOFError ou qualquer outro erro que termine o loop de comandos.
     while True:
-        time.sleep(0.1)
+        time.sleep(0.5)
 else:
     print("Esse programa não pode ser usado como biblioteca. Rode diretamente.")
         
