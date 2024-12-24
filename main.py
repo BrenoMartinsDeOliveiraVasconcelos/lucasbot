@@ -618,6 +618,7 @@ def sub_filter():
                         min_sentences = config["text_filter"]["min_sentences"]
                         max_body = config["text_filter"]["max_body"]
                         min_body = config["text_filter"]["min_body"]
+                        post_removed = False
                         # Remove a publicação suspeita de parede de texto.
                         if (paragraphs < min_paragraphs or
                                 sentences < min_sentences or
@@ -626,6 +627,7 @@ def sub_filter():
                         
                             reason = reasons['TEXTWALL']
                             submission.mod.remove(mod_note=reason['note'], spam=False)
+                            post_removed = True
                             reasonstr = f"Post caiu no filtro de parede de texto e por isso foi removido. Arrume e reposte. Confira os critérios analizados:\n\n"
 
                             # Adicionar as condicionais e seus valores booleanos
@@ -674,6 +676,7 @@ def sub_filter():
 
                             if remove:
                                 submission.mod.remove(mod_note="Sem idade", spam=False)
+                                post_removed = True
                                 submission.reply(body=reason+f"\n\nCaso tenha sido um erro, fale com a [moderação](https://www.reddit.com/message/compose?to=r%2F{config['subreddit']}).\n\n>!NOEDIT!<")
                                 open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
 
@@ -688,14 +691,19 @@ def sub_filter():
                                 if now - sub_created < karma_filter["timeout"]:
                                     submission.mod.remove(mod_note="Sem karma", spam=False)
                                     submission.reply(body=f"Seu post foi removido pois você não possui karma suficiente para postar nesse subreddit. Envie um modmail para a [moderação](https://www.reddit.com/message/compose?to=r%2F{config['subreddit']}) para revisar o seu post.\n\n>!NOEDIT!<")
+                                    post_removed = True
                                 else:
                                     if karma <= karma_filter["after_timeout_report_when"]:
                                         # Reportar
                                         submission.mod.report(
                                             mod_note=f"Post suspeito. Usuário possui {karma} de karma."
                                         )
+                                        post_removed = True
 
                                 open(f"{config['list_path']}/rid", "a").write(f"{subid}\n")
+                        if post_removed:
+                            # Responde o corpo do texto para debugging
+                            submission.reply(body="## Corpo do texto\n\n"+submission.selftext+"\n\n>!NOEDIT!<")
                     tmr_exceptions = 0
                 except (prawcore.exceptions.TooManyRequests, praw.exceptions.RedditAPIException):
                     sleep_time = 10 + tmr_exceptions # Tempo de espera total
