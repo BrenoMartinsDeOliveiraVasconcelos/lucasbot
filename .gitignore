@@ -14,12 +14,12 @@ reasoning
 ignore_list
 pyenv
 cid
-__pycache__
+__pycache__/
 __venv__
 .idea
 __pycache__
 teste
-__venv__
+__venv__/
 venv
 .gemini
 .pyen
