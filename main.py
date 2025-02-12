@@ -131,6 +131,15 @@ def runtime():
             tmr_exceptions = 0
             for submission in submissons:
                 try:
+                    # Verificar se o post já está na tabela
+                    cursor.execute(f"SELECT subid FROM submissions WHERE subid='{submission.id}';")
+                    if not cursor.fetchone():
+                        # Inserir novo registro
+                        cursor.execute(
+                            f"INSERT INTO submissions (subreddit, subid, author, nuked) "
+                            f"VALUES ('{config['subreddit']}', '{submission.id}', '{submission.author.name}', 0)"
+                        )
+                        sql.commit()
                     time.sleep(config["sleep_time"]["main"])
 
                     sql.commit()
@@ -174,7 +183,7 @@ def runtime():
                     # Salva as alterações no arquivo de corpos
                     if submission.id not in sublist:  # Se a submissão não tiver nos ids
                         submission.reply(
-                            body="OP, por favor responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento.\n\n>!NOEDIT!<")
+                            body="OP, por favor responda esse comentário com o motivo de você achar ser o babaca ou não para ajudar no julgamento. Caso queira remover os comentários do bot e o post depois, comente 'del' sem aspas (só válido para o autor do post!!)\n\n>!NOEDIT!<")
                         botcomment = submission.reply(
                             body=ftxt + botxt + etxt)  # Responde a publicação com a soma das partes como placeholder
                         try:
@@ -519,6 +528,7 @@ def clearlog(non_automatic=False):
 # Verificador de paredes de texto
 def sub_filter():
     reddit.validate_on_submit = True
+
     while True:
         atime = datetime.datetime.now().timestamp()
         try:
@@ -627,6 +637,7 @@ def sub_filter():
                         
                             reason = reasons['TEXTWALL']
                             submission.mod.remove(mod_note=reason['note'], spam=False)
+                            cursor.execute(f"UPDATE submissions SET nuked=1 WHERE subid='{post_id}';")
                             post_removed = True
                             reasonstr = f"Post caiu no filtro de parede de texto e por isso foi removido. Arrume e reposte. Confira os critérios analizados:\n\n"
 
@@ -846,12 +857,88 @@ def stat():  # Estatisticas do subreddit
             tools.logger(tp=5, ex=traceback.format_exc())
 
 
+def check_deletion():
+    '''Verifica posts com solicitação de deleção via comentário "del" do autor'''
+    while True:
+        try:
+            sql = tools.db_connect(args=args)
+            cursor = sql.cursor()
+
+            # Ler a lista de IDs de posts
+            with open(f"{config['list_path']}/idlist", "r") as f:
+                post_ids = [line.strip() for line in f.readlines()]
+
+            # Deixa só os ultimos 1000 ids na lista
+            if len(post_ids) > 1000:
+                post_ids = post_ids[-1000:]
+
+            for post_id in post_ids:
+                # Verificar se o post está marcado como não nuked
+                cursor.execute(f"SELECT author, nuked FROM submissions WHERE subid='{post_id}';")
+                result = cursor.fetchone()
+                
+                if result and result[1] == 0:  # Se nuked=False
+                    author = result[0]
+                    tmr_exceptions = 0
+                    try:
+                        # Buscar o post no Reddit
+                        submission = reddit.submission(id=post_id)
+                        submission.comments.replace_more(limit=None)
+                        comments = submission.comments.list()
+
+                        # Verificar comentários do autor com "del"
+                        for comment in comments:
+                            comment_body = [tools.smart_strip(x, config["replace_list"]).lower() for x in comment.body.split(" ")]
+                            comment_body = " ".join(comment_body)
+                            comment_body = comment_body.split(" ")
+
+                            if comment.author == author and config["nuking_word"] in comment_body:
+                                # Marcar como nuked
+                                cursor.execute(f"UPDATE submissions SET nuked=1 WHERE subid='{post_id}';")
+                                sql.commit()
+                                tools.logger(tp=2, ex=f"Post {post_id} marcado para deleção.")
+
+                                # Primeiro, remover os comentários do bot
+                                for commentb in comments:
+                                    if commentb.author == api["username"]:
+                                        commentb.mod.remove(spam=False)
+
+                                # Remove o post em questão
+                                submission.mod.remove(spam=False)
+
+                                # Remove os comentários feito pelo autor
+                                for commentc in comments:
+                                    if commentc.author == author:
+                                        commentc.mod.remove(spam=False)
+
+                                # Avisa o OP que o post foi deletado
+                                submission.reply(f"Post removido com sucesso. Tenha um bom dia.")
+
+                                break
+
+                        tmr_exceptions = 0
+                    except (prawcore.exceptions.TooManyRequests, praw.exceptions.RedditAPIException):
+                        tmr_exceptions += 1
+                        sleep_time = 10 + tmr_exceptions # Tempo de espera total
+                        tools.logger(tp=5, ex=f"Too many requests! esperando {sleep_time} segundos...", bprint=False)
+
+                        if sleep_time > 600:
+                            tools.logger(tp=5, exx="O acesso a api está negado?", bprint=True)
+                            exit(-1)                        
+                    except prawcore.exceptions.NotFound:
+                        tools.logger(tp=4, ex=f"Post {post_id} não encontrado.")
+            
+                time.sleep(config["sleep_time"]["deletion_check"])  # Intervalo padrão
+        except Exception as e:
+            tools.logger(tp=5, ex=traceback.format_exc())
+
+
 if __name__ == '__main__':
     tools.clear_console(), 
     prep.begin(config)
 
     # Carrega as funções
-    funcs = [[runtime], [sub_filter], [justification], [backup], [clearlog], [stat]]
+    funcs = [[runtime], [sub_filter], [justification], [backup], [clearlog], [stat], [check_deletion]] 
 
     # Inicializa os processos
     indx = 0

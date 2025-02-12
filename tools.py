@@ -193,3 +193,9 @@ def match(regex_type: str, text: str) -> bool:
 
     return result is not None
 
+
+def smart_strip(text: str, strip_list: list) -> str:
+    for i in strip_list:
+        text = text.replace(i, " ")
+
+    return text
