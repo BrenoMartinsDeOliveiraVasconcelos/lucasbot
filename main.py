@@ -137,7 +137,7 @@ def runtime():
                         # Inserir novo registro
                         cursor.execute(
                             f"INSERT INTO submissions (subreddit, subid, author, nuked) "
-                            f"VALUES ('{config['subreddit']}', '{submission.id}', '{submission.author.name}', 0)"
+                            f"VALUES ('{config['subreddit']}', '{submission.id}', '{submission.author}', 0)"
                         )
                         sql.commit()
                     time.sleep(config["sleep_time"]["main"])
@@ -511,18 +511,13 @@ def backup():
 
 # Limpador de logs
 def clearlog(non_automatic=False):
+    if non_automatic:
+        open(f'{config["list_path"]}/log', "w+").write("")
+        return
+
     while True:
-        current = f"{datetime.datetime.now().hour}:{datetime.datetime.now().minute}"
-
-        if current in config["clear_log"]:
-            open(f'{config["list_path"]}/log', "w+").write("")
-            time.sleep(60)
-
-        if non_automatic:
-            open(f'{config["list_path"]}/log', "w+").write("")
-            break
-
-        time.sleep(0.1)
+        open(f'{config["list_path"]}/log', "w+").write("")
+        time.sleep(config["clear"]*24*60*60)
 
 
 # Verificador de paredes de texto
@@ -706,7 +701,7 @@ def sub_filter():
                                 else:
                                     if karma <= karma_filter["after_timeout_report_when"]:
                                         # Reportar
-                                        submission.mod.report(
+                                        submission.report(
                                             mod_note=f"Post suspeito. Usuário possui {karma} de karma."
                                         )
                                         post_removed = True
