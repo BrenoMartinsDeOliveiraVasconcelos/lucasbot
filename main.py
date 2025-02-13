@@ -906,7 +906,10 @@ def check_deletion():
                                         commentc.mod.remove(spam=False)
 
                                 # Avisa o OP que o post foi deletado
-                                submission.reply(f"Post removido com sucesso. Tenha um bom dia.")
+                                submission.reply(f"Post removido com sucesso. Tenha um bom dia, u/{author}.")
+                                
+                                # Envia um modmail para a moderação com o link do post 
+                                reddit.subreddit(config["subreddit"]).submit(title="Post removido pelo usuário.", selftext=f"Esse post foi removido por u/{author}.\n\n[Link do post]({submission.permalink})")
 
                                 break
 
