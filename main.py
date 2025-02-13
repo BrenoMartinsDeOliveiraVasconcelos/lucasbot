@@ -701,8 +701,7 @@ def sub_filter():
                                 else:
                                     if karma <= karma_filter["after_timeout_report_when"]:
                                         # Reportar
-                                        submission.report(
-                                            mod_note=f"Post suspeito. Usuário possui {karma} de karma."
+                                        submission.report(f"Post suspeito. Usuário possui {karma} de karma."
                                         )
                                         post_removed = True
 
